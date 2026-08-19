@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="210mm" height="297mm" viewBox="0 0 210 297">
+  <rect width="210" height="297" fill="white"/>
+
+  <!-- Registration markers for scan alignment; outside drawing region -->
+  <rect x="10" y="10" width="3" height="3" fill="#111"/>
+  <rect x="197" y="10" width="3" height="3" fill="#111"/>
+  <rect x="10" y="284" width="3" height="3" fill="#111"/>
+  <rect x="197" y="284" width="3" height="3" fill="#111"/>
+
+  <text x="105" y="22"
+        text-anchor="middle"
+        font-family="Arial, DejaVu Sans, sans-serif"
+        font-size="7"
+        font-weight="700"
+        fill="#111">
+    FLASH 10 - COLOR YOUR MEMORY
+  </text>
+
+  <text x="105" y="31"
+        text-anchor="middle"
+        font-family="Arial, DejaVu Sans, sans-serif"
+        font-size="3.8"
+        fill="#555">
+    Tô màu / trang trí BÊN TRONG khung nét đứt
+  </text>
+
+  <!-- Printed guide only. This outline must be removed during scan preprocessing. -->
+  <g transform="translate(22 49) scale(0.36087)">
+    <path d="M153 445C102 432 88 368 115 304C92 264 100 216 122 185L105 80C103 61 113 59 128 73L185 126C216 107 252 108 281 126L330 73C344 60 354 64 351 84L339 185C365 218 370 265 345 304C355 325 360 348 357 370C373 345 398 342 411 363C429 393 400 435 345 430C330 442 315 447 302 448C260 466 198 466 153 445Z"
+          fill="none"
+          stroke="#B8B8B8"
+          stroke-width="3.6"
+          stroke-dasharray="10 8"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+  </g>
+
+  <text x="105" y="263"
+        text-anchor="middle"
+        font-family="Arial, DejaVu Sans, sans-serif"
+        font-size="3.6"
+        fill="#666">
+    Sau khi hoàn thành, đưa tờ giấy cho staff để scan.
+  </text>
+
+  <text x="105" y="271"
+        text-anchor="middle"
+        font-family="Arial, DejaVu Sans, sans-serif"
+        font-size="2.7"
+        fill="#999">
+    Không tô lên 4 ô vuông nhỏ ở các góc - dùng để căn chỉnh khi scan.
+  </text>
+</svg>
