@@ -1,0 +1,33 @@
+{
+  "id": "frame-template-v1",
+  "label": "Reusable Frame Template",
+  "page": {
+    "format": "A4",
+    "orientation": "portrait",
+    "widthPx": 2480,
+    "heightPx": 3508,
+    "dpi": 300
+  },
+  "assets": {
+    "printableTemplate": "./printable-template.svg",
+    "allowedRegionMask": "./allowed-region-mask.svg",
+    "guideStrokeMask": "./guide-stroke-mask.svg"
+  },
+  "registrationMarkers": [
+    { "x": 183, "y": 263 },
+    { "x": 2297, "y": 263 },
+    { "x": 183, "y": 3245 },
+    { "x": 2297, "y": 3245 }
+  ],
+  "extraction": {
+    "mode": "template-difference",
+    "clipToAllowedRegion": true,
+    "removeGuideStroke": true,
+    "trimTransparentMargin": true,
+    "paddingRatio": 0.025
+  },
+  "wall": {
+    "frameId": "frame-template-v1",
+    "defaultAnimation": "random"
+  }
+}
