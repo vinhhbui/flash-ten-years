@@ -1,15 +1,24 @@
 import { createServer } from "node:http";
-import crypto from "node:crypto";
+import path from "node:path";
+import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
 import { Server } from "socket.io";
-import { appendSubmission, ensureStorage, readSubmissions, saveImage, uploadsDirectory } from "./storage.js";
-import type { AnimationType, Submission, SubmissionInput } from "./types.js";
+import { ensureStorage, readSubmissions, uploadsDirectory } from "./storage.js";
+import { createSubmissionService } from "./submissionService.js";
+import { ingestScan } from "./scanner/ingestScan.js";
+import { loadScannerConfig } from "./scanner/scannerConfig.js";
+import { startScannerWatcher, type ScannerWatcher } from "./scanner/scannerWatcher.js";
+import type { AnimationType, SubmissionInput } from "./types.js";
+
+dotenv.config({ path: path.resolve(import.meta.dirname, "../..", ".env") });
 
 const port = Number(process.env.PORT ?? 3001);
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: { origin: true, methods: ["GET", "POST"] } });
+const submissionService = createSubmissionService((submission) => io.emit("new_artwork", submission));
+let scannerWatcher: ScannerWatcher | undefined;
 
 app.use(cors({ origin: true }));
 app.use(express.json({ limit: "12mb" }));
@@ -26,7 +35,9 @@ function parsePngData(value: unknown): Buffer | null {
 }
 
 function parseAnimation(value: unknown): AnimationType | null {
-  return value === "float" || value === "hop" ? value : null;
+  if (typeof value !== "string") return null;
+  const animation = value.trim().toLowerCase();
+  return /^[a-z0-9-]{1,48}$/.test(animation) ? animation : null;
 }
 
 function parseName(value: unknown): string | undefined | null {
@@ -56,16 +67,14 @@ app.post("/api/submissions", async (request, response, next) => {
     if (name === null) return response.status(400).json({ error: "Name must be text." });
     if (image.length > 8 * 1024 * 1024) return response.status(413).json({ error: "Artwork is too large. Please try again." });
 
-    const id = `cat_${crypto.randomUUID()}`;
-    const submission: Submission = {
-      id,
-      ...(name ? { name } : {}),
-      image: await saveImage(id, image),
+    const submission = await submissionService.createSubmission({
+      image,
       animation,
-      createdAt: new Date().toISOString(),
-    };
-    await appendSubmission(submission);
-    io.emit("new_artwork", submission);
+      idPrefix: "cat",
+      ...(name ? { name } : {}),
+      frameId: "cat-v1",
+      source: "digital",
+    });
     return response.status(201).json(submission);
   } catch (error) {
     next(error);
@@ -79,10 +88,27 @@ app.use((error: unknown, _request: express.Request, response: express.Response, 
 
 async function start() {
   await ensureStorage();
+  const scannerConfig = loadScannerConfig();
+  scannerWatcher = await startScannerWatcher({
+    config: scannerConfig,
+    onStableFile: (inputPath) => ingestScan({
+      inputPath,
+      config: scannerConfig,
+      submissionService,
+    }),
+  });
   httpServer.listen(port, "0.0.0.0", () => {
     console.log(`Memory Cat server is ready on http://0.0.0.0:${port}`);
   });
 }
+
+async function shutdown() {
+  await scannerWatcher?.close();
+  httpServer.close();
+}
+
+process.once("SIGINT", () => { void shutdown(); });
+process.once("SIGTERM", () => { void shutdown(); });
 
 start().catch((error) => {
   console.error("Memory Cat server could not start", error);

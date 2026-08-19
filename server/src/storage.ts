@@ -1,5 +1,6 @@
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import crypto from "node:crypto";
 import type { Submission } from "./types.js";
 
 const serverRoot = path.resolve(import.meta.dirname, "..");
@@ -12,17 +13,25 @@ export async function ensureStorage() {
   await Promise.all([mkdir(uploadsDirectory, { recursive: true }), mkdir(dataDirectory, { recursive: true })]);
   try {
     await readFile(submissionsFile, "utf8");
-  } catch {
-    await writeFile(submissionsFile, "[]\n", "utf8");
+  } catch (error) {
+    if (isMissingFileError(error)) {
+      await writeFile(submissionsFile, "[]\n", "utf8");
+      return;
+    }
+    throw error;
   }
 }
 
 export async function readSubmissions(): Promise<Submission[]> {
   try {
     const parsed: unknown = JSON.parse(await readFile(submissionsFile, "utf8"));
-    return Array.isArray(parsed) ? parsed as Submission[] : [];
-  } catch {
-    return [];
+    if (!Array.isArray(parsed)) {
+      throw new Error("Submission metadata must be a JSON array.");
+    }
+    return parsed as Submission[];
+  } catch (error) {
+    if (isMissingFileError(error)) return [];
+    throw error;
   }
 }
 
@@ -39,6 +48,22 @@ export async function appendSubmission(submission: Submission) {
 
 export async function saveImage(id: string, image: Buffer) {
   const fileName = `${id}.png`;
-  await writeFile(path.join(uploadsDirectory, fileName), image);
+  const finalPath = path.join(uploadsDirectory, fileName);
+  const temporaryPath = path.join(uploadsDirectory, `.${id}.${crypto.randomUUID()}.tmp`);
+  try {
+    await writeFile(temporaryPath, image);
+    await rename(temporaryPath, finalPath);
+  } catch (error) {
+    await rm(temporaryPath, { force: true }).catch(() => undefined);
+    throw error;
+  }
   return `/uploads/${fileName}`;
+}
+
+export async function removeSavedImage(id: string) {
+  await rm(path.join(uploadsDirectory, `${id}.png`), { force: true });
+}
+
+function isMissingFileError(error: unknown): error is NodeJS.ErrnoException {
+  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
 }

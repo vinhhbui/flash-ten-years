@@ -8,4 +8,10 @@ server/data/submissions.json
 !server/data/submissions.json
 .env
 .env.*
-
+!.env.example
+event-data/scanner/inbox/*
+!event-data/scanner/inbox/.gitkeep
+event-data/scanner/archive/*
+!event-data/scanner/archive/.gitkeep
+event-data/scanner/failed/*
+!event-data/scanner/failed/.gitkeep

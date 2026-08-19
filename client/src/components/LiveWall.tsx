@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import CatSprite from "./CatSprite";
+import ArtworkSprite from "./ArtworkSprite";
 import { getSubmissions, serverUrl } from "../lib/api";
 import { wallSocket } from "../lib/socket";
 import type { Submission } from "../types/submission";
@@ -54,7 +54,7 @@ export default function LiveWall() {
       {isLoading && <p className="wall-status">Loading the wall...</p>}
       {error && <p className="wall-status error">{error}</p>}
       {!isLoading && !error && cats.length === 0 && <p className="wall-status">Your first cat is waiting to come alive.</p>}
-      {cats.map((cat) => <CatSprite key={cat.id} submission={cat} position={cat.position} isNew={cat.isNew} />)}
+      {cats.map((cat) => <ArtworkSprite key={cat.id} submission={cat} position={cat.position} isNew={cat.isNew} />)}
     </section>
   );
 }
