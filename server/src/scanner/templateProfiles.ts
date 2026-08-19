@@ -24,6 +24,9 @@ interface TemplateConfiguration {
   output: {
     preserveCharacterInterior: boolean;
     interiorPaperMode: "normalized-paper";
+    bodyFillMode: "asset";
+    bodyFillMask: string;
+    bodyFillInsetPx: number;
     preserveOutsideUserStrokes: boolean;
     outsideCaptureRadiusPx: number;
     outsideDifferenceThreshold: number;
@@ -36,6 +39,7 @@ interface TemplateConfiguration {
 export interface TemplatePreprocessProfile extends TemplateConfiguration {
   printableTemplatePath: string;
   allowedRegionMaskPath: string;
+  bodyFillMaskPath: string;
   guideStrokeMaskPath: string;
 }
 
@@ -70,6 +74,7 @@ async function loadTemplateProfile(profileId: string, templateDirectory: string)
     ...configuration,
     printableTemplatePath: path.join(templateDirectory, "printable-template.svg"),
     allowedRegionMaskPath: path.join(templateDirectory, "allowed-region-mask.svg"),
+    bodyFillMaskPath: path.join(templateDirectory, configuration.output.bodyFillMask),
     guideStrokeMaskPath: path.join(templateDirectory, "guide-stroke-mask.svg"),
   };
 }

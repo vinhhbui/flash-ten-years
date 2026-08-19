@@ -41,11 +41,14 @@
       { "x": 1163, "y": 1677, "size": 18 }
     ]
   },
-  "differenceThreshold": 40,
-  "guideDifferenceThreshold": 180,
+  "differenceThreshold": 50,
+  "guideDifferenceThreshold": 150,
   "output": {
     "preserveCharacterInterior": true,
     "interiorPaperMode": "normalized-paper",
+    "bodyFillMode": "asset",
+    "bodyFillMask": "body-fill-mask.svg",
+    "bodyFillInsetPx": 100,
     "preserveOutsideUserStrokes": true,
     "outsideCaptureRadiusPx": 180,
     "outsideDifferenceThreshold": 45,

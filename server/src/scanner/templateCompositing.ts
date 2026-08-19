@@ -16,13 +16,14 @@ interface TemplateCompositionInput {
   scan: RawRgbaImage;
   blankTemplate: RawRgbaImage;
   allowedRegionMask: RawRgbaImage;
+  bodyFillMask: RawRgbaImage;
   guideStrokeMask: RawRgbaImage;
   paperColor: Rgb;
   profile: TemplatePreprocessProfile;
 }
 
 export function composeTemplateArtwork(input: TemplateCompositionInput): TemplateComposition {
-  const { scan, blankTemplate, allowedRegionMask, guideStrokeMask, paperColor, profile } = input;
+  const { scan, blankTemplate, allowedRegionMask, bodyFillMask, guideStrokeMask, paperColor, profile } = input;
   const pixelCount = scan.width * scan.height;
   const captureMask = createArtworkCaptureMask(
     allowedRegionMask,
@@ -70,7 +71,7 @@ export function composeTemplateArtwork(input: TemplateCompositionInput): Templat
   const guestChangedPixelCount = countMaskPixels(interiorChanges) + countMaskPixels(outsideChanges);
   const output = composeFinalSprite(
     scan,
-    allowedRegionMask,
+    bodyFillMask,
     interiorChanges,
     outsideChanges,
     profile,
@@ -103,7 +104,7 @@ function createBinaryMask(mask: RawRgbaImage): Uint8Array {
 
 function composeFinalSprite(
   scan: RawRgbaImage,
-  allowedRegionMask: RawRgbaImage,
+  bodyFillMask: RawRgbaImage,
   interiorChanges: Uint8Array,
   outsideChanges: Uint8Array,
   profile: TemplatePreprocessProfile,
@@ -111,8 +112,8 @@ function composeFinalSprite(
   const output = Buffer.alloc(scan.data.length);
   for (let pixelIndex = 0; pixelIndex < interiorChanges.length; pixelIndex += 1) {
     const offset = pixelIndex * 4;
-    const insideCharacter = allowedRegionMask.data[offset]! > 128;
-    if (insideCharacter && profile.output.preserveCharacterInterior) {
+    const insideBodyFill = bodyFillMask.data[offset]! > 128;
+    if (insideBodyFill && profile.output.preserveCharacterInterior) {
       output[offset] = 255;
       output[offset + 1] = 255;
       output[offset + 2] = 255;

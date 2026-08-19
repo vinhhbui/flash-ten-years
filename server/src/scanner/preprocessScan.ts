@@ -47,13 +47,15 @@ async function preprocessGenericScan(inputPath: string): Promise<Buffer> {
 
 async function preprocessTemplateScan(inputPath: string, profile: TemplatePreprocessProfile): Promise<Buffer> {
   const scan = await normalizeScanToTemplate(inputPath, profile);
-  const [blankTemplate, allowedRegionMask, guideStrokeMask] = await Promise.all([
+  const [blankTemplate, allowedRegionMask, bodyFillMask, guideStrokeMask] = await Promise.all([
     readRgbaImage(profile.printableTemplatePath, profile.paper.rasterDensity),
     readRgbaImage(profile.allowedRegionMaskPath, profile.paper.rasterDensity),
+    readRgbaImage(profile.bodyFillMaskPath, profile.paper.rasterDensity),
     readRgbaImage(profile.guideStrokeMaskPath, profile.paper.rasterDensity),
   ]);
   assertSameCanvas(scan, blankTemplate, "blank template");
   assertSameCanvas(scan, allowedRegionMask, "allowed region mask");
+  assertSameCanvas(scan, bodyFillMask, "body fill mask");
   assertSameCanvas(scan, guideStrokeMask, "guide stroke mask");
 
   const paperColor = estimateTemplatePaperColor(scan, allowedRegionMask, guideStrokeMask);
@@ -61,6 +63,7 @@ async function preprocessTemplateScan(inputPath: string, profile: TemplatePrepro
     scan,
     blankTemplate,
     allowedRegionMask,
+    bodyFillMask,
     guideStrokeMask,
     paperColor,
     profile,

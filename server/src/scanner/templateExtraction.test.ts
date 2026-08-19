@@ -16,6 +16,7 @@ import { getTemplatePreprocessProfile, type TemplatePreprocessProfile } from "./
 const templateDirectory = path.resolve(import.meta.dirname, "../../../shared/templates/cat-v1");
 const printableTemplatePath = path.join(templateDirectory, "printable-template.svg");
 const allowedRegionMaskPath = path.join(templateDirectory, "allowed-region-mask.svg");
+const bodyFillMaskPath = path.join(templateDirectory, "body-fill-mask.svg");
 const guideStrokeMaskPath = path.join(templateDirectory, "guide-stroke-mask.svg");
 const canonicalWidth = 1240;
 const canonicalHeight = 1754;
@@ -33,6 +34,7 @@ let canonicalFixture: Promise<CanonicalFixture> | undefined;
 interface CanonicalFixture {
   blankTemplate: RawRgbaImage;
   allowedRegionMask: RawRgbaImage;
+  bodyFillMask: RawRgbaImage;
   guideStrokeMask: RawRgbaImage;
   profile: TemplatePreprocessProfile;
 }
@@ -121,19 +123,23 @@ test("a4-cat-v1 makes the untouched printed guide outside the character transpar
   }
 });
 
-test("a4-cat-v1 replaces the untouched printed guide inside the character with opaque white", async () => {
-  const { fixture, composition } = await composeCanonicalTemplate();
-  const guidePixels = findPrintedGuidePixels(fixture, true);
+test("a4-cat-v1 replaces an unchanged guide inside the body core with opaque white", async () => {
+  const fixture = await getCanonicalFixture();
+  const point = findWhiteInteriorPoint(fixture);
+  const { composition } = await composeCanonicalTemplate(
+    (scan) => paintSquare(scan, point.x, point.y, 2, [184, 184, 184]),
+    (blankTemplate, guideStrokeMask) => {
+      paintSquare(blankTemplate, point.x, point.y, 2, [184, 184, 184]);
+      paintSquare(guideStrokeMask, point.x, point.y, 2, [255, 255, 255]);
+    },
+  );
 
-  assert.equal(guidePixels.length > 0, true);
-  for (const pixelIndex of guidePixels) {
-    assertPixel(composition.image, pixelIndex, [255, 255, 255], 255);
-  }
+  assertPixel(composition.image, point.pixelIndex, [255, 255, 255], 255);
 });
 
 test("a4-cat-v1 preserves red paint over the guide outside the character", async () => {
   const fixture = await getCanonicalFixture();
-  const point = findPrintedGuidePoint(fixture, false);
+  const point = findExternalGuidePoint(fixture);
   const { composition } = await composeCanonicalTemplate((scan) => {
     paintSquare(scan, point.x, point.y, 3, [242, 27, 43]);
   });
@@ -143,7 +149,7 @@ test("a4-cat-v1 preserves red paint over the guide outside the character", async
 
 test("a4-cat-v1 preserves black paint over the guide outside the character", async () => {
   const fixture = await getCanonicalFixture();
-  const point = findPrintedGuidePoint(fixture, false);
+  const point = findExternalGuidePoint(fixture);
   const { composition } = await composeCanonicalTemplate((scan) => {
     paintSquare(scan, point.x, point.y, 3, [0, 0, 0]);
   });
@@ -179,6 +185,32 @@ test("a4-cat-v1 keeps an untouched white character interior opaque", async () =>
   assertPixel(composition.image, point.pixelIndex, [255, 255, 255], 255);
 });
 
+test("a4-cat-v1 keeps the unused allowed-region boundary band transparent", async () => {
+  const { fixture, composition } = await composeCanonicalTemplate();
+  let boundaryPixelCount = 0;
+
+  for (let pixelIndex = 0; pixelIndex < fixture.allowedRegionMask.width * fixture.allowedRegionMask.height; pixelIndex += 1) {
+    if (!isInsideCharacter(fixture, pixelIndex) || isInsideBodyFill(fixture, pixelIndex)) continue;
+    boundaryPixelCount += 1;
+    assert.equal(composition.image.data[pixelIndex * 4 + 3], 0);
+  }
+
+  assert.equal(boundaryPixelCount > 1_000, true);
+});
+
+test("a4-cat-v1 preserves red, black, and green guest paint in the boundary band", async () => {
+  const fixture = await getCanonicalFixture();
+  const point = findBoundaryBandPoint(fixture);
+  const colors: Array<[number, number, number]> = [[242, 27, 43], [0, 0, 0], [180, 238, 8]];
+
+  for (const color of colors) {
+    const { composition } = await composeCanonicalTemplate((scan) => {
+      paintSquare(scan, point.x, point.y, 3, color);
+    });
+    assertPixel(composition.image, point.pixelIndex, color, 255);
+  }
+});
+
 test("a4-cat-v1 excludes title, footer, and registration markers from the sprite", async () => {
   const { fixture, composition } = await composeCanonicalTemplate();
   const captureMask = createArtworkCaptureMask(
@@ -195,6 +227,30 @@ test("a4-cat-v1 excludes title, footer, and registration markers from the sprite
   }
 
   assert.equal(templatePagePixelCount > 1_000, true);
+});
+
+test("a4-cat-v1 keeps blank A4 paper transparent outside the body and artwork", async () => {
+  const fixture = await getCanonicalFixture();
+  const captureMask = createArtworkCaptureMask(
+    fixture.allowedRegionMask,
+    fixture.profile.output.outsideCaptureRadiusPx,
+  );
+  const { composition } = await composeCanonicalTemplate();
+  const blankPaperPoint = findPoint(fixture, (pixelIndex) => (
+    captureMask[pixelIndex] === 0 && isWhitePixel(fixture.blankTemplate, pixelIndex)
+  ));
+
+  assert.equal(composition.image.data[blankPaperPoint.pixelIndex * 4 + 3], 0);
+});
+
+test("a4-cat-v1 preserves an external blue accessory inside the artwork capture region", async () => {
+  const fixture = await getCanonicalFixture();
+  const point = findOutsideArtworkPoint(fixture);
+  const { composition } = await composeCanonicalTemplate((scan) => {
+    paintSquare(scan, point.x, point.y, 4, [35, 110, 234]);
+  });
+
+  assertPixel(composition.image, point.pixelIndex, [35, 110, 234], 255);
 });
 
 test("a4-cat-v1 preserves a thick guest stroke crossing the character boundary", async () => {
@@ -221,6 +277,8 @@ test("a4-cat-v1 preserves gray whiskers outside the cat and expands the crop", a
 
     assert.equal(countOpaqueColor(pixels.data, [90, 90, 90]) > 1_000, true);
     assert.equal((metadata.width ?? 0) > 800, true);
+    assert.equal((metadata.width ?? 0) < canonicalWidth, true);
+    assert.equal((metadata.height ?? 0) < canonicalHeight, true);
   });
 });
 
@@ -434,43 +492,49 @@ function countOpaqueColorNear(pixels: Buffer, expected: [number, number, number]
 async function getCanonicalFixture(): Promise<CanonicalFixture> {
   canonicalFixture ??= (async () => {
     const profile = await getTemplatePreprocessProfile("a4-cat-v1");
-    const [blankTemplate, allowedRegionMask, guideStrokeMask] = await Promise.all([
+    const [blankTemplate, allowedRegionMask, bodyFillMask, guideStrokeMask] = await Promise.all([
       readTemplatePixels(printableTemplatePath),
       readTemplatePixels(allowedRegionMaskPath),
+      readTemplatePixels(bodyFillMaskPath),
       readTemplatePixels(guideStrokeMaskPath),
     ]);
-    return { blankTemplate, allowedRegionMask, guideStrokeMask, profile };
+    return { blankTemplate, allowedRegionMask, bodyFillMask, guideStrokeMask, profile };
   })();
   return canonicalFixture;
 }
 
 async function composeCanonicalTemplate(
   mutateScan?: (scan: RawRgbaImage) => void,
+  mutateReference?: (blankTemplate: RawRgbaImage, guideStrokeMask: RawRgbaImage) => void,
 ): Promise<{ fixture: CanonicalFixture; composition: ReturnType<typeof composeTemplateArtwork> }> {
   const fixture = await getCanonicalFixture();
+  const blankTemplate = cloneImage(fixture.blankTemplate);
+  const guideStrokeMask = cloneImage(fixture.guideStrokeMask);
   const scan: RawRgbaImage = {
     data: Buffer.from(fixture.blankTemplate.data),
     width: fixture.blankTemplate.width,
     height: fixture.blankTemplate.height,
   };
   mutateScan?.(scan);
+  mutateReference?.(blankTemplate, guideStrokeMask);
   return {
     fixture,
     composition: composeTemplateArtwork({
       scan,
-      blankTemplate: fixture.blankTemplate,
+      blankTemplate,
       allowedRegionMask: fixture.allowedRegionMask,
-      guideStrokeMask: fixture.guideStrokeMask,
+      bodyFillMask: fixture.bodyFillMask,
+      guideStrokeMask,
       paperColor: { red: 255, green: 255, blue: 255 },
       profile: fixture.profile,
     }),
   };
 }
 
-function findPrintedGuidePixels(fixture: CanonicalFixture, insideCharacter: boolean): number[] {
+function findPrintedGuidePixels(fixture: CanonicalFixture, insideBodyFill: boolean): number[] {
   const matches: number[] = [];
   for (let pixelIndex = 0; pixelIndex < fixture.guideStrokeMask.width * fixture.guideStrokeMask.height; pixelIndex += 1) {
-    if (isInsideCharacter(fixture, pixelIndex) !== insideCharacter) continue;
+    if (isInsideBodyFill(fixture, pixelIndex) !== insideBodyFill) continue;
     if (fixture.guideStrokeMask.data[pixelIndex * 4]! <= 128) continue;
     if (!isTemplateInk(fixture.blankTemplate, pixelIndex)) continue;
     matches.push(pixelIndex);
@@ -478,9 +542,10 @@ function findPrintedGuidePixels(fixture: CanonicalFixture, insideCharacter: bool
   return matches;
 }
 
-function findPrintedGuidePoint(fixture: CanonicalFixture, insideCharacter: boolean): TemplatePoint {
-  const pixelIndex = findPrintedGuidePixels(fixture, insideCharacter)[0];
-  if (pixelIndex === undefined) throw new Error("The template does not have a printed guide point in the requested zone");
+function findExternalGuidePoint(fixture: CanonicalFixture): TemplatePoint {
+  const pixelIndex = findPrintedGuidePixels(fixture, false)
+    .find((candidate) => !isInsideCharacter(fixture, candidate));
+  if (pixelIndex === undefined) throw new Error("The template does not have an external printed guide point");
   return pointAt(fixture.blankTemplate.width, pixelIndex);
 }
 
@@ -527,9 +592,16 @@ function findWhiteInteriorPoint(fixture: CanonicalFixture): TemplatePoint {
     fixture.profile.guide.cleanupBandPaddingPx,
   );
   return findPoint(fixture, (pixelIndex) => (
-    isInsideCharacter(fixture, pixelIndex)
+    isInsideBodyFill(fixture, pixelIndex)
     && guideCleanupBand[pixelIndex] === 0
     && isWhitePixel(fixture.blankTemplate, pixelIndex)
+  ));
+}
+
+function findBoundaryBandPoint(fixture: CanonicalFixture): TemplatePoint {
+  return findPoint(fixture, (pixelIndex) => (
+    isInsideCharacter(fixture, pixelIndex)
+    && !isInsideBodyFill(fixture, pixelIndex)
   ));
 }
 
@@ -564,6 +636,10 @@ function findPoint(
 
 function isInsideCharacter(fixture: CanonicalFixture, pixelIndex: number): boolean {
   return fixture.allowedRegionMask.data[pixelIndex * 4]! > 128;
+}
+
+function isInsideBodyFill(fixture: CanonicalFixture, pixelIndex: number): boolean {
+  return fixture.bodyFillMask.data[pixelIndex * 4]! > 128;
 }
 
 function isTemplateInk(image: RawRgbaImage, pixelIndex: number): boolean {
@@ -609,6 +685,10 @@ function paintSquare(
       image.data[offset + 3] = 255;
     }
   }
+}
+
+function cloneImage(image: RawRgbaImage): RawRgbaImage {
+  return { data: Buffer.from(image.data), width: image.width, height: image.height };
 }
 
 function assertPixel(image: RawRgbaImage, pixelIndex: number, color: [number, number, number], alpha: number) {
