@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2480 3508" width="2480" height="3508">
+  <!-- Black = not guide stroke, White = printed dashed guide pixels -->
+  <rect width="2480" height="3508" fill="#000000"/>
+  <path
+    id="frame-shape"
+    d="M 865 1050
+       C 735 900 760 730 930 790
+       C 1035 670 1200 650 1325 775
+       C 1490 695 1685 795 1645 1030
+       C 1810 1165 1845 1405 1710 1570
+       C 1840 1745 1775 1995 1585 2090
+       C 1545 2315 1360 2470 1175 2390
+       C 1005 2485 795 2380 755 2180
+       C 565 2075 525 1840 665 1680
+       C 525 1510 565 1260 720 1150
+       C 765 1115 815 1080 865 1050 Z"
+    fill="none"
+    stroke="#ffffff"
+    stroke-width="18"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-dasharray="34 26"
+  />
+</svg>
