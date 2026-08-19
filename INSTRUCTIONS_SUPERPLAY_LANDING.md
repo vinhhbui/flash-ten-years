@@ -1,660 +1,486 @@
-# FLASH 10 — SuperPlay Motion Clone Landing Instructions
+# FLASH 10 — Filmstrip Path Landing Instructions
 
 ## 0. Authority and scope
 
-This file is the **authoritative implementation instruction for the public landing route `/`** in `flash-ten-years`.
+This file is the authoritative implementation instruction for the public landing route `/` in `flash-ten-years`.
 
-It is scoped to the landing experience only.
+It replaces the previous SuperPlay/game-playground visual direction. Do not preserve the old landing design language merely because some code or documentation already exists.
 
 Precedence:
 
 1. `INSTRUCTIONS.md` remains authoritative for the Memory Cat product flow, `/create`, `/wall`, API, Socket.IO, persistence, scanning-related product work, and event/LAN behavior.
-2. **This file is authoritative for `/`, landing architecture, visual direction, scroll choreography, motion system, responsive behavior, and landing performance.**
-3. `INSTRUCTIONS_GSAP_SCROLL_REFERENCE.md` is a technical reference experiment only. Its long SVG path is not the production landing architecture.
-4. Do not break `/create`, `/wall`, server behavior, uploads, persistence, or Socket.IO while redesigning `/`.
+2. This file is authoritative for `/`, landing architecture, visual language, scroll choreography, filmstrip path behavior, responsive behavior, and landing performance.
+3. The previous SuperPlay-inspired playground direction is obsolete.
+4. The old page-wide abstract SVG route is obsolete unless reused as implementation scaffolding for the new filmstrip path.
+5. Do not break `/create`, `/wall`, server behavior, uploads, persistence, or Socket.IO while redesigning `/`.
 
-The task is not greenfield. The application already exists.
-
----
-
-# 1. Mission
-
-Replace the current landing page with an **original FLASH 10 animated playground whose interaction rhythm is strongly inspired by the SuperPlay homepage**.
-
-Reference:
-
-- https://www.superplay.co/
-
-The target is **high behavioral fidelity, not brand copying**.
-
-Clone:
-
-```text
-motion rhythm
-scroll staging
-kinetic typography
-asset choreography
-playful depth
-visual interruptions
-scene-to-scene continuity
-bounce / overshoot character
-```
-
-Do not copy:
-
-```text
-SuperPlay logo
-SuperPlay copy
-SuperPlay game art
-SuperPlay coin/cube/domino images
-SuperPlay characters
-SuperPlay proprietary illustrations
-SuperPlay source code
-```
-
-Use original FLASH 10 visuals and placeholders that can later be replaced with real event assets.
+The application already exists. This is a redesign of the landing experience, not a greenfield rebuild.
 
 ---
 
-# 2. Reference audit — researched before implementation
+# 1. New design language
 
-This section records the verified characteristics of the current reference so Codex does not reduce the brief to a generic animated landing page.
-
-## 2.1 What is visible on the current SuperPlay homepage
-
-The homepage uses a short manifesto rather than many conventional marketing sections.
-
-Observed content beats include:
+The landing page must now be built around one clear visual metaphor:
 
 ```text
-It's only fun if you're winning
-
-BEING SUPER
-means we love to
-PUSH OUR LIMITS
-
-And
-we aim to
-find people who
-feel the same way
-
-Because
-it takes
-winners to build
-winning games
-
-Get exploring!
+A LONG CONTINUOUS FILMSTRIP
+RUNNING THROUGH THE CENTER OF THE PAGE
 ```
 
-Between these text beats, the page contains many visual assets instead of plain whitespace.
+The filmstrip is the visual spine of the entire landing experience.
 
-The live page exposes asset groups with names such as:
+It should feel like a physical strip of film that stores memories from the last 10 years.
+
+The user scrolls through the page as if they are following the filmstrip through a sequence of memories.
+
+The page should feel:
 
 ```text
-HPcoin_*.png
-fragments-box-img-*.jpg
-HPcube_*.png
-slide-unit_*.png
-HPdomino_*.png
-hello-unit.gif
+nostalgic
+cinematic
+playful
+handmade
+warm
+continuous
+memory-driven
 ```
 
-These filenames are evidence of the **visual grammar** only: repeated families of collectible/game-like objects, image fragments, sprite units, and animated media surrounding the typography.
-
-Do not copy those assets.
-
-## 2.2 Design intent from the design studio
-
-The design case study describes:
-
-- animated titles that bounce
-- game elements that move quickly around the screen
-- playful interactive challenges
-- bold typography
-- direct graphic language guiding the user through the manifesto
-- energetic, joyful, unapologetic visual behavior
-
-Therefore the target cannot be reproduced with only `fade + translateY` reveals.
-
-## 2.3 Development characteristics from the implementation studio
-
-The development case study identifies:
-
-- a custom front-end
-- WordPress as the CMS/platform
-- advanced scroll and hover animations
-- animation-rich layouts
-- image/video-heavy storytelling
-- performance and responsive requirements
-
-We do **not** need to copy WordPress. The existing FLASH React/Vite application is the correct implementation platform.
-
-## 2.4 Technical implementation note
-
-The public sources above do not prove that SuperPlay itself uses GSAP or Lenis.
-
-Do not claim that it does.
-
-For FLASH 10 we choose GSAP + ScrollTrigger because:
-
-- GSAP already exists in this repository
-- ScrollTrigger supports `scrub` and `pin`, which fit the required choreography
-- it avoids replacing the existing frontend stack
-
-Lenis is an optional smooth-scroll layer for our implementation, not a claim about SuperPlay's source stack.
-
-Reference sources for Codex:
+Do not return to the previous visual language of:
 
 ```text
-https://www.superplay.co/
-https://www.awesome-deloitte.com/project/superplay
-https://group107.com/case-studies/super-play/
-https://gsap.com/docs/v3/Plugins/ScrollTrigger/
-https://github.com/darkroomengineering/lenis
+game-like object swarms
+coin/cube/domino-inspired objects
+heavy kinetic typography everywhere
+random flying collectibles
+independent marketing cards
+SuperPlay-like playground composition
 ```
+
+Those concepts are no longer the landing design target.
 
 ---
 
-# 3. Current repository baseline
+# 2. Core layout principle
 
-Before editing, inspect the actual repository.
+The landing must feel like one continuous vertical journey.
 
-Current frontend stack:
+At the center of the page is a filmstrip-shaped path.
 
-```text
-React 18
-Vite
-TypeScript
-React Router
-GSAP
-ScrollTrigger
-react-konva
-Socket.IO client
-```
-
-Current routes:
+Conceptually:
 
 ```text
-/         -> LandingPage
-/create   -> CreatePage
-/wall     -> WallPage
+       text / image
+            \
+             \
+        ╔══════════╗
+        ║  frame   ║
+        ╠══════════╣
+        ║  frame   ║
+        ╠══════════╣
+        ║  frame   ║
+        ╚══════════╝
+             /
+            /
+      button / copy
 ```
 
-Current landing implementation is mainly in:
+The filmstrip can bend, wave, curve, coil, compress, or stretch as it travels down the page.
+
+It should not be a perfectly straight vertical rectangle from top to bottom.
+
+The strip should behave like a flexible physical object.
+
+Recommended visual behavior:
 
 ```text
-client/src/pages/LandingPage.tsx
-client/src/styles.css
+wide curve
+-> narrow curve
+-> left bend
+-> right bend
+-> loose coil
+-> stretched transition
+-> final unwind
 ```
 
-The current landing already has:
-
-- full-height vertical sections
-- editorial headline blocks
-- CSS-built decorative characters
-- one page-wide SVG route
-- path drawing with `strokeDashoffset`
-- generic `[data-landing-reveal]` fade/translate animation
-
-Treat this as a disposable prototype.
-
-The production target must move from:
-
-```text
-STACKED SECTIONS
-+ GLOBAL SVG PATH
-+ FADE-UP REVEALS
-```
-
-to:
-
-```text
-ONE CONTINUOUS ANIMATED PLAYGROUND
-+ MANIFESTO-LIKE STORY BEATS
-+ SCROLL-CONTROLLED TIMELINES
-+ LARGE TYPOGRAPHY AS OBJECTS
-+ CHOREOGRAPHED VISUAL SWARMS
-+ STRONG OBJECT HANDOFFS
-```
-
-Do not preserve the old DOM simply to minimize the diff.
+The filmstrip remains visually recognizable throughout the experience.
 
 ---
 
-# 4. FLASH 10 story mapping
+# 3. Filmstrip anatomy
 
-Do not copy SuperPlay's literal manifesto.
+The path must look unmistakably like a filmstrip.
 
-Map its **rhythm** to FLASH 10.
+Required characteristics:
 
-Recommended narrative:
+- continuous dark or high-contrast strip body
+- repeated rectangular frames
+- repeated perforation/sprocket holes along both edges
+- rounded or slightly imperfect bends
+- visible inner image/content area
+- consistent physical width through most of the page
+- perspective/scale changes only when intentionally animated
 
-## Beat A — Opening promise
+Do not represent the filmstrip as only a thin SVG line.
+
+The user should immediately understand:
+
+```text
+this is a strip of film
+```
+
+A practical DOM/SVG structure could be:
+
+```text
+FilmstripPath
+├── strip body
+├── left perforations
+├── right perforations
+├── frame windows
+└── optional shadow/highlight
+```
+
+Implementation details may vary, but the visual result matters more than the exact technique.
+
+---
+
+# 4. Main interaction concept
+
+Vertical page scroll controls the filmstrip.
+
+The strip should appear to move through the viewport like a reel being pulled.
+
+Primary behaviors:
+
+```text
+scroll down
+-> filmstrip extends / feeds forward
+-> next frames become visible
+-> nearby section content enters
+
+scroll up
+-> filmstrip retracts / rolls backward
+-> previous frames return
+-> nearby content rewinds naturally
+```
+
+The motion must be reversible with normal scroll.
+
+Do not use autoplay as the primary navigation mechanism.
+
+Do not require the user to finish one animation before continuing.
+
+---
+
+# 5. Filmstrip as the section anchor
+
+Every major section must attach visually to the central filmstrip.
+
+Each section may contain any combination of:
+
+```text
+text
+heading
+short paragraph
+button
+image
+photo
+illustration
+milestone
+quote
+badge
+memory card
+CTA
+```
+
+But the content should appear to belong to the filmstrip journey.
+
+Allowed composition patterns:
+
+## Pattern A — content left, film center
+
+```text
+[ text / CTA ]   [ FILMSTRIP ]
+```
+
+## Pattern B — film center, content right
+
+```text
+[FILMSTRIP]   [ image / copy ]
+```
+
+## Pattern C — frame becomes hero image
+
+```text
+      [ FILMSTRIP FRAME ]
+        contains photo
+
+       title below/above
+```
+
+## Pattern D — content overlaps the strip
+
+```text
+      [ text badge ]
+           ↓
+      [ FILMSTRIP ]
+```
+
+## Pattern E — strip widens into a content stage
+
+```text
+normal strip
+-> widens
+-> becomes large frame/gallery
+-> narrows again
+```
+
+Do not make each section a disconnected card with its own unrelated layout.
+
+---
+
+# 6. Recommended narrative structure
+
+Use 5–7 meaningful content sections.
+
+Recommended first version:
+
+```text
+Scene 1  Opening / FLASH 10
+Scene 2  10 Years / Timeline
+Scene 3  Kết Nối
+Scene 4  Bản Sắc
+Scene 5  Flashback / Memory Gallery
+Scene 6  Memory Cat Handoff
+Scene 7  Final CTA
+```
+
+The exact copy can change, but the filmstrip remains the shared visual spine.
+
+---
+
+# 7. Scene 1 — Opening / FLASH 10
+
+Purpose:
+
+- establish the filmstrip metaphor immediately
+- introduce FLASH 10
+- encourage the user to start scrolling
+
+Suggested copy:
 
 ```text
 FLASH 10
-TEN YEARS IN MOTION
+TEN YEARS OF MEMORIES
 ```
 
-Optional small line:
+Optional support:
 
 ```text
 KẾT NỐI · BẢN SẮC · FLASHBACK
 ```
 
+Visual behavior:
+
+- filmstrip enters from above or from a rolled/coiled state
+- first visible frames may be empty placeholders or contain anniversary visuals
+- hero text sits beside or partially overlaps the strip
+- first scroll begins feeding the film forward
+
+Avoid a conventional centered hero followed by a hard section break.
+
+---
+
+# 8. Scene 2 — 10 Years / Timeline
+
 Purpose:
 
-- immediate identity hit
-- no paragraph-heavy hero
-- first visual impression should be motion and scale
+Use the filmstrip literally as a 10-year timeline.
 
-## Beat B — Flashback / 10 years
+Frame content examples:
 
 ```text
-10 YEARS
-OF MOMENTS
-THAT KEEP MOVING
+2016
+2018
+2020
+2022
+2024
+2026
 ```
 
-Purpose:
+or real milestones later when available.
 
-- map to the first major manifesto beat
-- introduce memory fragments/photos/timeline tokens
+Do not invent factual history if real milestone data has not been provided.
 
-## Beat C — Kết Nối
+Behavior:
+
+- dates can appear inside or next to film frames
+- frame images can enter as the strip scrolls
+- the strip may form a gentle S-curve
+- one or more frames may enlarge slightly when they reach the visual focal area
+
+This section can support image, text, button, and milestone content.
+
+---
+
+# 9. Scene 3 — Kết Nối
+
+Theme:
 
 ```text
 KẾT NỐI
-EVERY PIECE
-BECOMES ONE STORY
+EVERY MEMORY CONNECTS
 ```
 
-Purpose:
+Visual concept:
 
-- many separated visual objects gather and connect
-- emphasize people/connections rather than company marketing
+The filmstrip represents the connection between individual memories.
 
-## Beat D — Bản Sắc
+Possible behavior:
+
+- strip bends between left and right content blocks
+- small images appear in consecutive frames
+- text fragments sit on alternating sides
+- connector annotations/arrows may point to specific frames
+
+The visual focus is the continuity of the strip, not floating independent objects.
+
+---
+
+# 10. Scene 4 — Bản Sắc
+
+Theme:
 
 ```text
 BẢN SẮC
 LEAVE YOUR MARK
 ```
 
-Purpose:
+This section can be more colorful and graphic.
 
-- individual colors/shapes/stickers become distinct
-- prepare the visual language for attendee-created artwork
+Possible content:
 
-## Beat E — Memory Cat handoff
+- individual colors
+- handwritten notes
+- stickers
+- portraits
+- mini identity cards
+- visual patterns
+
+These should appear inside frames or immediately around the filmstrip.
+
+The strip itself can briefly change treatment:
 
 ```text
+monochrome strip
+-> color accents appear
+-> frames become more personalized
+```
+
+Do not abandon the film metaphor during this scene.
+
+---
+
+# 11. Scene 5 — Flashback / Memory Gallery
+
+Theme:
+
+```text
+FLASHBACK
+```
+
+This is where the filmstrip becomes most literal.
+
+Possible behavior:
+
+- multiple frames contain photos
+- current focal frame scales up
+- neighboring frames remain smaller
+- vertical scroll may drive a short horizontal drift inside the frame sequence
+- frame content may fade/cross-dissolve as if changing film
+
+The filmstrip may temporarily widen to create a cinematic gallery area.
+
+This scene must be easy to populate later with real event photos.
+
+Use a data-driven structure such as:
+
+```ts
+const memories = [
+  { image, year, title, caption },
+  ...
+]
+```
+
+Do not hardcode each photo into unrelated JSX if a reusable frame component can handle it.
+
+---
+
+# 12. Scene 6 — Memory Cat handoff
+
+Purpose:
+
+Connect the anniversary film journey to the actual event interaction.
+
+Suggested copy:
+
+```text
+ADD YOUR FRAME
 MAKE A MEMORY
 BRING IT TO LIFE
+```
+
+The filmstrip can contain a blank frame that transforms into or reveals the Memory Cat interaction.
+
+Possible transition:
+
+```text
+normal photo frame
+-> empty frame arrives
+-> frame highlights
+-> cat silhouette appears inside
+-> CTA appears beside it
 ```
 
 Primary CTA:
 
 ```text
-CREATE YOUR MEMORY -> /create
+CREATE YOUR MEMORY
+```
+
+Route:
+
+```text
+/create
 ```
 
 Secondary CTA:
 
 ```text
-VIEW LIVE WALL -> /wall
+VIEW LIVE WALL
 ```
 
-The Memory Cat is the payoff of the landing journey.
+Route:
+
+```text
+/wall
+```
+
+Do not gate either CTA behind animation completion.
 
 ---
 
-# 5. Core composition rule — one playground, not six cards
+# 13. Scene 7 — Final CTA
 
-This is a critical requirement.
+The filmstrip can slowly unwind, flatten, or disappear toward the bottom.
 
-Do **not** implement the landing as six visually isolated rectangular sections with independent card layouts.
+Finish with a calm and readable composition.
 
-The experience should feel like one continuous world.
-
-Use sections/components for code organization, but visually connect them using:
-
-- shared background fields
-- objects that cross section boundaries
-- scale takeovers
-- persistent floating tokens
-- typography replacement
-- color transitions
-- foreground wipes
-
-A user should not strongly perceive:
+Suggested message:
 
 ```text
-section ends
-new section starts
-section ends
-new section starts
+YOUR MEMORY
+BECOMES PART OF THE FILM
 ```
-
-Instead they should perceive:
-
-```text
-one composition transforms
--> becomes another composition
--> objects carry forward
--> new message emerges from the previous state
-```
-
----
-
-# 6. Required motion grammar
-
-## 6.1 Scroll is the playhead
-
-Scroll should control animation progress.
-
-Use scene-local GSAP timelines with ScrollTrigger.
-
-Core tools:
-
-```text
-pin
-scrub
-start/end tuning
-labels
-transform choreography
-```
-
-Important beats may remain pinned for roughly `150–280vh` of scroll, but tune based on visual pacing rather than copying one fixed value.
-
-Scrolling upward must rewind naturally.
-
-Do not write wheel-direction handlers for basic reversal.
-
-## 6.2 Kinetic typography
-
-Large words must behave as graphical objects.
-
-Allowed transforms:
-
-```text
-translateX
-translateY
-rotate
-scale
-scaleX
-scaleY
-skew
-clip/mask
-viewport overflow
-```
-
-Examples:
-
-```text
-FLASH slams in from below
-10 stretches vertically then settles
-KẾT NỐI travels horizontally across the viewport
-BẢN SẮC rotates into a cropped composition
-MEMORY scales until it becomes a transition layer
-```
-
-Split important headings into words/lines where useful.
-
-Keep accessible reading order/labels.
-
-Do not animate every body paragraph word-by-word.
-
-## 6.3 Bounce, squash and overshoot
-
-The motion should feel physical and game-like.
-
-Use short impact states such as:
-
-```text
-0.65 scale
--> 1.10 overshoot
--> 0.97 recoil
--> 1.00 settle
-```
-
-or:
-
-```text
-scaleX 1.18 / scaleY 0.82
--> scaleX 0.94 / scaleY 1.07
--> 1 / 1
-```
-
-Suggested easing families for non-scrub impact motion:
-
-```text
-back.out
-elastic.out
-power3.out
-power4.out
-```
-
-For scrubbed timeline motion, prefer predictable easing such as `none` or restrained power easing.
-
-## 6.4 Visual swarms
-
-Each major beat should have a **small family of related visual objects** around the headline.
-
-For FLASH 10, create original families such as:
-
-```text
-AnniversaryToken
-MemoryFragment
-PhotoCard
-FlashShape
-ConnectionDot
-StickerToken
-CatToken
-Spark
-Arrow
-Ribbon
-```
-
-Do not render all families at once.
-
-Use 4–10 meaningful objects per active composition rather than dozens of noisy particles.
-
-## 6.5 Depth
-
-Use intentional depth layers:
-
-```text
-background
-midground
-foreground
-focal
-```
-
-Suggested relative motion magnitude:
-
-```text
-background -> 0.10–0.18
-midground  -> 0.22–0.35
-foreground -> 0.45–0.70
-```
-
-These are design ratios, not literal required API values.
-
-Foreground objects may cross the viewport faster and temporarily crop offscreen.
-
-## 6.6 Object handoff
-
-At least **two transitions** must reuse one visual object across beats.
-
-Examples:
-
-```text
-giant 10
--> expands
--> becomes circular field in Flashback
-
-photo fragment
--> flies across transition
--> becomes a connection node
-
-identity sticker
--> enlarges
--> reveals Memory Cat silhouette
-```
-
-This is a key technique for making the landing feel continuous.
-
----
-
-# 7. Recommended production beats
-
-Use 5 core motion beats plus a final stable CTA state.
-
-## Scene 1 — Hero playground
-
-Target: strongest fidelity checkpoint.
-
-Visual hierarchy:
-
-```text
-small FLASH 10 identifier
-very large FLASH
-very large 10
-supporting KẾT NỐI · BẢN SẮC · FLASHBACK
-4–7 floating original FLASH objects
-```
-
-Entrance choreography:
-
-```text
-background field reveals
--> FLASH slams in
--> 10 enters compressed
--> 10 overshoots / stretches
--> floating tokens zip into frame from mixed directions
--> all settle into a deliberately imperfect composition
-```
-
-First scroll movement:
-
-- do not translate the whole hero upward
-- separate the tokens
-- move/rotate the word FLASH
-- enlarge `10`
-- let one foreground object cross camera
-- begin takeover into Scene 2
-
-The hero must already feel convincing before Codex proceeds to the rest of the page.
-
-## Scene 2 — 10 Years / Flashback
-
-Pin this beat.
-
-Use the giant `10` as a visual anchor.
-
-Memory/photo fragments orbit, cross, stack, or slide around it.
-
-Possible movement:
-
-```text
-10 stabilizes center
--> fragments enter one by one
--> one row shifts horizontally while vertical scroll continues
--> one photo comes toward camera using scale
--> fragments clear rapidly
--> one fragment survives into Connection
-```
-
-Use placeholders if no real anniversary imagery exists.
-
-Clearly mark them as replaceable.
-
-Do not download random copyrighted photos for permanent use.
-
-## Scene 3 — Kết Nối / Connection
-
-Start with objects dispersed around the viewport.
-
-During scroll:
-
-```text
-pieces approach one another
--> line/node relationships appear
--> pieces form one temporary cluster
--> giant KẾT NỐI crosses behind or through the cluster
--> cluster compresses
--> cluster releases into Scene 4
-```
-
-The existing SVG path-drawing technique may be reused **only here** if it strengthens the connection metaphor.
-
-If used:
-
-- make it local to this scene
-- do not keep the existing page-wide route
-- the SVG must support the scene rather than dominate the entire page
-
-## Scene 4 — Bản Sắc / Identity
-
-This is the most graphic and contrast-heavy beat.
-
-Use:
-
-- huge cropped text
-- rotated blocks
-- original sticker shapes
-- identity color tiles
-- strong overlaps
-- quick snapping composition
-
-Progression:
-
-```text
-BẢN SẮC enters oversized
--> tokens snap into individual positions
--> composition compresses
--> selected tokens rotate/stretch
--> pieces burst outward
--> one central piece remains
--> central piece becomes Memory Cat reveal
-```
-
-Colors must be centralized through landing CSS variables or token objects.
-
-Do not scatter unrelated hard-coded colors through components.
-
-## Scene 5 — Memory Cat reveal
-
-This beat should visually explain the event mechanism without becoming a tutorial screen.
-
-Main object:
-
-```text
-large Memory Cat silhouette / original cat asset
-```
-
-Supporting motion:
-
-- sample cat tokens pop in
-- use Float/Hop vocabulary from `/wall`
-- small stickers orbit or cross
-- cat uses squash/stretch on entry
-
-Message:
-
-```text
-MAKE A MEMORY
-BRING IT TO LIFE
-```
-
-Primary CTA must become clickable before all decorative motion completes.
-
-Do not gate navigation behind a timeline.
-
-## Scene 6 — Stable final CTA
-
-After high-energy motion, finish with a readable end state.
 
 Actions:
 
@@ -663,15 +489,278 @@ CREATE YOUR MEMORY -> /create
 VIEW LIVE WALL     -> /wall
 ```
 
-The final CTA can still have hover motion, but it should not be visually chaotic.
+The final scene should feel like the end of a reel.
 
 ---
 
-# 8. Required React architecture
+# 14. Filmstrip path geometry
 
-The current `LandingPage.tsx` should become a lightweight orchestrator.
+This is the most important technical design requirement.
 
-Refactor approximately toward:
+Do not hardcode one giant arbitrary path without a clear geometry system.
+
+Recommended architecture:
+
+```text
+scroll progress
+     ↓
+filmstrip centerline/path
+     ↓
+strip body derived from centerline
+     ↓
+frame positions sampled along path
+     ↓
+perforations sampled along path
+```
+
+Possible implementation approaches:
+
+## Option A — SVG path + repeated transformed frame groups
+
+Useful when:
+
+- precise curved path matters
+- frame positions must follow Bézier geometry
+- DOM/SVG accessibility is manageable
+
+## Option B — DOM sections with CSS transform/rotate
+
+Useful when:
+
+- implementation speed matters
+- the path only needs several controlled bends
+- frames can be grouped per scene
+
+## Option C — Canvas/WebGL
+
+Not required for V1.
+
+Do not jump to Canvas or Three.js unless DOM/SVG cannot achieve the intended quality.
+
+Preferred V1:
+
+```text
+SVG for path geometry
++
+DOM/SVG film frames
++
+GSAP ScrollTrigger
+```
+
+---
+
+# 15. Filmstrip frame component
+
+Build a reusable component.
+
+Conceptual API:
+
+```ts
+interface FilmFrameContent {
+  image?: string;
+  year?: string;
+  title?: string;
+  caption?: string;
+  alt?: string;
+  href?: string;
+}
+```
+
+Suggested component:
+
+```text
+FilmFrame
+├── media
+├── overlay
+├── year
+├── title
+└── optional action
+```
+
+A frame may be:
+
+```text
+photo frame
+text frame
+blank frame
+CTA frame
+memory-cat frame
+```
+
+Keep the system flexible enough that each section can add new content without rewriting the entire filmstrip.
+
+---
+
+# 16. Section content model
+
+Prefer a data-driven section model where reasonable.
+
+Example intent:
+
+```ts
+interface FilmSection {
+  id: string;
+  eyebrow?: string;
+  title: string;
+  body?: string;
+  side?: "left" | "right" | "center";
+  frames?: FilmFrameContent[];
+  primaryAction?: {
+    label: string;
+    href: string;
+  };
+}
+```
+
+Not every scene must be generated from one generic component.
+
+The goal is to make adding:
+
+```text
+text
+button
+image
+new frame
+milestone
+```
+
+easy and predictable.
+
+---
+
+# 17. Motion behavior
+
+The filmstrip itself is the primary animated object.
+
+Motion priorities:
+
+1. filmstrip extension/retraction
+2. filmstrip bend/coil transitions
+3. active frame emphasis
+4. nearby content reveal
+5. subtle image/parallax polish
+
+Do not make decorative animation compete with the strip.
+
+Recommended GSAP/ScrollTrigger features:
+
+```text
+scrub
+pin where useful
+scene-local timelines
+transform
+scale
+rotation
+clip-path/mask where practical
+```
+
+The strip should feel elastic but not rubbery to the point of losing the film metaphor.
+
+---
+
+# 18. Spring / reel behavior
+
+The filmstrip can react slightly like a physical reel.
+
+When scrolling down:
+
+```text
+strip stretches forward
+curve opens slightly
+frames advance
+```
+
+When scrolling up:
+
+```text
+strip retracts
+curve tightens slightly
+frames rewind
+```
+
+Keep this effect subtle enough to preserve legibility.
+
+Do not use chaotic physics.
+
+A small lag/scrub value can help create a physical feel.
+
+---
+
+# 19. Active-frame emphasis
+
+When a film frame reaches the main viewing region, it may receive a temporary active state.
+
+Examples:
+
+```text
+scale 1 -> 1.06
+small shadow increase
+slight rotate correction toward 0deg
+image opacity/contrast increase
+caption appears
+```
+
+Neighboring frames remain visible but less dominant.
+
+This creates a cinematic reading rhythm without turning the page into a carousel.
+
+---
+
+# 20. Background and visual styling
+
+Recommended direction:
+
+```text
+warm paper / off-white base
+black or charcoal filmstrip
+subtle film grain
+slightly imperfect texture
+muted anniversary colors
+small FLASH brand accents
+```
+
+Optional effects:
+
+- film grain overlay
+- dust/scratch texture
+- soft vignette
+- paper texture
+- subtle frame flicker
+
+Keep effects lightweight.
+
+Do not add heavy fake-VHS distortion unless explicitly requested later.
+
+---
+
+# 21. Typography
+
+Typography should support the filmstrip rather than dominate it.
+
+Use:
+
+- bold condensed/display heading for major titles
+- clean readable body text
+- small mono/technical labels for year/frame numbers if useful
+
+Typography can animate, but it is secondary to the strip.
+
+Allowed:
+
+```text
+subtle slide
+mask reveal
+small scale
+slight rotation
+```
+
+Avoid excessive squash/stretch typography from the previous design direction.
+
+---
+
+# 22. Required React architecture
+
+Refactor the landing toward:
 
 ```text
 client/src/
@@ -681,35 +770,28 @@ client/src/
 ├── components/
 │   └── landing/
 │       ├── LandingHeader.tsx
-│       ├── KineticText.tsx
-│       ├── MotionAsset.tsx
-│       ├── ParallaxLayer.tsx
-│       ├── SceneFrame.tsx
-│       ├── visual/
-│       │   ├── AnniversaryToken.tsx
-│       │   ├── MemoryFragment.tsx
-│       │   ├── FlashShape.tsx
-│       │   └── CatToken.tsx
+│       ├── FilmstripPath.tsx
+│       ├── FilmFrame.tsx
+│       ├── FilmSection.tsx
+│       ├── FilmPerforations.tsx
+│       ├── ActiveFrame.tsx
 │       └── scenes/
-│           ├── HeroScene.tsx
-│           ├── FlashbackScene.tsx
+│           ├── OpeningScene.tsx
+│           ├── TimelineScene.tsx
 │           ├── ConnectionScene.tsx
 │           ├── IdentityScene.tsx
+│           ├── FlashbackScene.tsx
 │           ├── MemoryCatScene.tsx
 │           └── FinalCtaScene.tsx
 │
 ├── animations/
 │   └── landing/
-│       ├── motionPresets.ts
-│       ├── heroTimeline.ts
-│       ├── flashbackTimeline.ts
-│       ├── connectionTimeline.ts
-│       ├── identityTimeline.ts
-│       └── memoryCatTimeline.ts
+│       ├── filmstripTimeline.ts
+│       ├── frameMotion.ts
+│       └── motionPresets.ts
 │
-├── hooks/
-│   ├── useReducedMotion.ts
-│   └── useLandingSmoothScroll.ts
+├── data/
+│   └── landingContent.ts
 │
 └── styles/
     └── landing.css
@@ -717,21 +799,47 @@ client/src/
 
 Small changes are allowed to match repository conventions.
 
-Rules:
+Important:
 
-- one scene component should be understandable in isolation
-- one primary ScrollTrigger timeline per scene
-- keep temporary hover/entrance tweens local to their component
-- use refs and `gsap.context()`
-- reliably clean everything on unmount
-- do not create one giant global timeline for the whole site
-- do not create dozens of unrelated ScrollTriggers for every small object
+- `LandingPage.tsx` should remain a lightweight orchestrator
+- filmstrip logic should not be duplicated in every scene
+- frame rendering should be reusable
+- content data should be easy to edit
+- cleanup of ScrollTrigger/GSAP must be reliable
 
 ---
 
-# 9. Styling architecture
+# 23. Remove old landing implementation patterns
 
-Move landing-specific styles out of the global product styling where practical.
+The following current patterns are obsolete and should be removed from the production landing:
+
+```text
+CSS-built runner/reader/walker characters
+old landing planet/orbit visuals
+global abstract routePath as the visual identity
+generic repeated data-landing-reveal fade-ups
+SuperPlay-style object swarm concepts
+coin/cube/domino/game-token language
+multiple unrelated colored card sections
+```
+
+Do not preserve them for visual continuity.
+
+Only keep technical pieces that remain useful, such as:
+
+```text
+React Router structure
+GSAP setup pattern
+ScrollTrigger cleanup pattern
+reduced-motion handling
+SVG path measurement techniques
+```
+
+---
+
+# 24. Styling isolation
+
+Landing-specific CSS should be separated from `/create` and `/wall` styling where practical.
 
 Target:
 
@@ -740,238 +848,70 @@ client/src/styles.css
   -> shared/create/wall styles
 
 client/src/styles/landing.css
-  -> landing-only styles
+  -> landing only
 ```
 
-Import `landing.css` only from the landing module or main stylesheet according to the existing convention.
-
-Landing style rules:
-
-- full-bleed compositions
-- allow intentional clipping
-- use responsive `clamp()` for giant type
-- keep CTA hit areas touch-friendly
-- use CSS variables for palette
-- prefer transform animation
-- avoid heavy box-shadow/filter animation
-
-Do not reproduce a normal card-grid marketing layout.
+The landing redesign must not visually regress the product routes.
 
 ---
 
-# 10. Remove from the current landing
+# 25. Smooth scrolling
 
-Remove or demote these patterns:
+Do not introduce a smooth-scroll library until the filmstrip works correctly with native scroll.
 
-## Remove as primary architecture
+Order:
 
 ```text
-const routePath = "...huge global SVG path..."
-[data-landing-reveal] on most content
-generic repeated fade + y reveals
-repeated editorial two-column sections
-CSS-built human characters as main visual language
-page-wide SVG scroll layer
+native scroll + ScrollTrigger
+-> correct geometry
+-> correct frame positioning
+-> correct reverse scrolling
+-> then optional Lenis polish
 ```
 
-## Keep only if useful
+If Lenis is added later:
+
+- use it only where stable
+- clean up correctly in React
+- do not create multiple instances in Strict Mode
+- disable it at breakpoints where touch behavior degrades
+
+Lenis is optional.
+
+---
+
+# 26. Responsive behavior
+
+The filmstrip metaphor must survive on mobile.
+
+Desktop:
 
 ```text
-React Router links
-GSAP setup
-ScrollTrigger lifecycle patterns
-reduced-motion handling
-SVG stroke-draw technique for Connection scene
-Memory Cat links
+filmstrip near center
+content alternates left/right
+larger bends
+more visible frames
 ```
 
-Do not keep old elements simply because they already exist.
-
----
-
-# 11. GSAP / ScrollTrigger implementation rules
-
-GSAP ScrollTrigger supports `pin` and `scrub`; use them intentionally.
-
-Conceptual scene pattern:
-
-```ts
-useLayoutEffect(() => {
-  const root = rootRef.current;
-  if (!root) return;
-
-  const ctx = gsap.context(() => {
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: root,
-        start: "top top",
-        end: "+=2200",
-        pin: true,
-        scrub: 0.8,
-        invalidateOnRefresh: true,
-      },
-    });
-
-    // scene choreography here
-  }, root);
-
-  return () => ctx.revert();
-}, []);
-```
-
-Important:
-
-- tune `end` per scene
-- do not blindly use `+=2200` everywhere
-- animate children inside a pinned scene rather than moving the pinned wrapper itself
-- avoid nested pinned sections
-- use labels for complex choreography
-- use `ScrollTrigger.refresh()` after critical assets/fonts load
-- use `will-change` only on elements actively benefiting from it
-- do not use React state for per-frame animation values
-
----
-
-# 12. Smooth scroll / Lenis
-
-The current client does not include Lenis.
-
-Do **not** install Lenis as the first step.
-
-Implementation order:
+Tablet:
 
 ```text
-native scroll + ScrollTrigger works correctly
--> pin/scrub choreography is approved
--> then evaluate Lenis
+smaller bends
+content moves closer to strip
+fewer simultaneous frames
 ```
 
-If smooth scrolling improves the page, add:
+Mobile:
 
 ```text
-lenis
+filmstrip can shift slightly left/right of center
+content may stack above/below frames
+curves become gentler
+frame width reduces
+buttons remain touch-friendly
 ```
 
-Official integration pattern:
-
-```ts
-const lenis = new Lenis();
-
-lenis.on("scroll", ScrollTrigger.update);
-
-gsap.ticker.add((time) => {
-  lenis.raf(time * 1000);
-});
-
-gsap.ticker.lagSmoothing(0);
-```
-
-Use lifecycle-safe React integration.
-
-Cleanup must:
-
-- destroy Lenis
-- remove the GSAP ticker callback
-- revert relevant GSAP contexts
-
-Do not create multiple Lenis instances in React Strict Mode.
-
-If touch/mobile feels worse with Lenis, use native scroll there.
-
-Lenis is polish, not a dependency for correctness.
-
----
-
-# 13. Motion presets
-
-Centralize shared motion intent.
-
-Example:
-
-```ts
-export const LANDING_MOTION = {
-  scrub: {
-    soft: 0.55,
-    cinematic: 0.85,
-  },
-  impact: {
-    enterScale: 0.62,
-    overshootScale: 1.09,
-    recoilScale: 0.975,
-  },
-  parallax: {
-    back: 0.14,
-    mid: 0.28,
-    front: 0.56,
-  },
-  pointerTilt: {
-    maxRotation: 5,
-  },
-};
-```
-
-These are starting values, not immutable design constants.
-
-Tune against the visual target.
-
-Avoid unexplained magic numbers spread through every scene.
-
----
-
-# 14. Hover and pointer interaction
-
-Desktop may include small pointer responses.
-
-Examples:
-
-- CTA compress/overshoot
-- one or two nearby tokens tilt toward pointer
-- image fragment shifts a few pixels in depth
-- nav item gets playful translate/rotate response
-
-Use efficient transform updates such as `gsap.quickTo()`.
-
-Do not make the entire page chase the cursor.
-
-Pointer interaction is secondary to scroll choreography.
-
----
-
-# 15. Asset strategy
-
-For V1 prefer:
-
-```text
-DOM
-CSS
-SVG
-WebP/AVIF/PNG assets
-small GIF/video only when justified
-```
-
-Do not add Three.js / React Three Fiber in V1.
-
-The reference's energy can be reproduced without WebGL.
-
-Use WebGL only later if a specific approved visual cannot be achieved credibly with the existing stack.
-
-Original placeholder assets should be easy to replace.
-
-Recommended folders:
-
-```text
-client/src/assets/landing/photos/
-client/src/assets/landing/stickers/
-client/src/assets/landing/shapes/
-```
-
-Do not hotlink SuperPlay assets.
-
----
-
-# 16. Responsive strategy
-
-Desktop is the primary motion-fidelity target.
+Do not hide the filmstrip entirely on mobile.
 
 Test at minimum:
 
@@ -983,49 +923,9 @@ Test at minimum:
 390 x 844
 ```
 
-## Desktop
-
-Allow:
-
-- giant clipped typography
-- pinned sequences
-- deeper travel distances
-- foreground crossings
-- optional pointer parallax
-
-## Tablet
-
-Reduce:
-
-- object count
-- travel distances
-- pin duration where necessary
-
-Preserve:
-
-- narrative order
-- primary kinetic text
-- strong transitions
-
-## Mobile
-
-Prioritize usability over desktop choreography fidelity.
-
-May simplify:
-
-- pointer effects
-- long horizontal movement
-- expensive parallax
-- number of floating assets
-- pin duration
-
-Do not create horizontal page overflow.
-
-CTA must remain easily tappable.
-
 ---
 
-# 17. Reduced motion
+# 27. Reduced motion
 
 Respect:
 
@@ -1033,264 +933,197 @@ Respect:
 prefers-reduced-motion: reduce
 ```
 
-Reduced-motion mode must:
+Reduced motion version should:
 
-- preserve all text and CTAs
-- avoid long pin/scrub experiences
-- remove large zipping/crossing movements
-- keep decorative objects mostly static
-- use simple short opacity/scale transitions if needed
+- show the full filmstrip structure
+- remove large spring/reel movement
+- reduce scrub transforms
+- keep images/text/buttons readable
+- preserve all routes and CTAs
 
-Motion must never gate navigation or information.
+Motion must never gate content.
 
 ---
 
-# 18. Performance constraints
+# 28. Performance requirements
 
-Target a smooth event-laptop experience.
-
-Prefer:
+Prefer animation of:
 
 ```text
 transform
 opacity
-optimized image assets
-scene-local animation
-limited active visual layers
+clip-path where reasonable
+SVG attributes only when necessary
 ```
 
 Avoid:
 
 ```text
-layout properties animated every frame
-large blur/filter animations
-continuous React setState during scroll
-hundreds of particles
-multiple videos autoplaying together
-unbounded requestAnimationFrame loops
+React setState per frame
+large uncompressed PNG sequences
+huge DOM counts for perforations
+layout-thrashing scroll listeners
+unbounded filter animations
 ```
 
-Only active scenes should do meaningful motion work.
+For perforations, use efficient repetition strategies rather than hundreds of independently animated nodes where possible.
 
-For image-heavy scenes:
-
-- size source images close to display needs
-- use WebP/AVIF where possible
-- preload only genuinely critical hero assets
-- lazy-load later imagery when practical
+Optimize images with WebP/AVIF when appropriate.
 
 ---
 
-# 19. Fidelity gates
+# 29. Implementation order for Codex
 
-Do not judge completion only by whether the code runs.
+Codex must implement in this order.
 
-## Gate A — Hero
+## Phase A — Audit
 
-At 1440×900, the first viewport must immediately read as an interactive campaign experience.
+Before changing code:
 
-Pass only if:
+- inspect current `LandingPage.tsx`
+- inspect current landing CSS
+- inspect `/create` and `/wall` route boundaries
+- identify old landing-specific classes/components to remove
 
-- giant typography dominates composition
-- at least 3 depth layers are visually apparent
-- several original visual tokens are choreographed around the type
-- entrance has physical overshoot/squash character
-- first scroll transforms the composition rather than merely scrolling it away
+Do not change product logic.
 
-If Hero still resembles the current editorial landing, stop and improve it before proceeding.
+## Phase B — Filmstrip static prototype
 
-## Gate B — Continuous world
+Build the filmstrip with no scroll animation first.
 
-After implementing the first 3 scenes:
+Exit condition:
 
-- boundaries should not feel like normal stacked website sections
-- at least one object handoff should connect scenes
-- at least two transition patterns should already be visible
+- unmistakably looks like a filmstrip
+- repeated frames visible
+- sprocket holes visible
+- bends/curves are credible
+- content can be placed around it
 
-## Gate C — Motion variety
+## Phase C — Scroll path behavior
 
-Whole landing must include at least 3 clearly different transition patterns from:
+Add scroll-controlled advance/rewind.
+
+Exit condition:
+
+- scrolling down advances the strip
+- scrolling up rewinds naturally
+- no major geometry jumps
+- no layout drift after resize
+
+## Phase D — Build first 3 scenes
+
+Implement:
 
 ```text
-scale takeover
-directional sweep
-typography replacement
-color takeover
-object handoff
+Opening
+10 Years
+Kết Nối
 ```
 
-## Gate D — SuperPlay motion principles
+Do not build all scenes before validating the system.
 
-Without copying brand art, a reviewer should recognize these characteristics:
+## Phase E — Content flexibility
+
+Prove that a section can add:
 
 ```text
-bouncy titles
-fast traveling visual elements
-bold cropped typography
-playful composition
-controlled visual chaos
-scroll-led exploration
+text
+button
+image
+multiple frames
+milestone
 ```
 
-If the primary visible motion is still fade-up, fail the gate.
+without rewriting filmstrip internals.
 
----
+## Phase F — Remaining scenes
 
-# 20. Implementation order for Codex
+Implement:
 
-Follow this order strictly.
+```text
+Bản Sắc
+Flashback
+Memory Cat
+Final CTA
+```
 
-## Phase 0 — Audit
+## Phase G — Responsive + reduced motion
 
-Before editing:
+Tune all required breakpoints.
 
-1. read `INSTRUCTIONS.md`
-2. read this file
-3. inspect `LandingPage.tsx`
-4. inspect landing CSS in `styles.css`
-5. inspect `App.tsx`
-6. inspect `/create` and `/wall` imports/styles enough to avoid regressions
-7. inspect available local assets
+## Phase H — Optional smooth-scroll polish
 
-Do not rewrite backend code for this task.
+Only if native scroll version is stable.
 
-## Phase 1 — Refactor skeleton
-
-- extract landing-specific CSS
-- create scene/components structure
-- remove dependence on the page-wide SVG route
-- keep routes unchanged
-
-Exit condition:
-
-- static page renders
-- `/create` and `/wall` still work
-- no animation complexity yet
-
-## Phase 2 — Build Hero only
-
-Implement full Hero composition and entrance.
-
-Then implement first scroll-controlled Hero transformation.
-
-Exit condition:
-
-- Hero passes Fidelity Gate A
-- no console errors
-- scrolling upward reverses cleanly
-
-**Do not build every scene before the Hero is convincing.**
-
-## Phase 3 — Flashback
-
-- giant `10`
-- memory fragments
-- pin/scrub timeline
-- object handoff to Connection
-
-Exit condition:
-
-- first two scenes feel like one continuous sequence
-
-## Phase 4 — Connection
-
-- dispersed objects
-- gathering cluster
-- optional local SVG connection path
-- transition into Identity
-
-Exit condition:
-
-- Gate B passes
-
-## Phase 5 — Identity
-
-- kinetic `BẢN SẮC`
-- graphic tokens
-- strong composition change
-- handoff into Memory Cat
-
-## Phase 6 — Memory Cat + CTA
-
-- reveal cat
-- connect visual vocabulary to `/wall`
-- primary CTA to `/create`
-- secondary `/wall`
-
-## Phase 7 — Smooth-scroll polish
-
-Only now evaluate/install Lenis.
-
-Keep it only if it measurably improves the experience.
-
-## Phase 8 — Responsive + reduced motion
-
-Tune desktop, tablet, mobile, and reduced-motion behavior.
-
-## Phase 9 — Validation
+## Phase I — Validation
 
 Run from repository root:
 
-```text
-npm run check
-npm run build
+```powershell
+npm.cmd run check
+npm.cmd run build
 ```
 
-Fix all new errors before handoff.
+Do not hand off with TypeScript or build failures.
 
 ---
 
-# 21. Definition of Done
+# 30. Acceptance criteria
 
-Landing redesign is done only when all apply:
+The landing redesign is complete only if all of the following pass:
 
-- [ ] `/` no longer resembles the old editorial/SVG-path prototype
-- [ ] page feels like one animated playground rather than isolated marketing cards
-- [ ] Hero passes Fidelity Gate A
-- [ ] scroll controls meaningful scene transformations
-- [ ] important scenes use pin/scrub where appropriate
-- [ ] giant typography acts as a moving visual object
-- [ ] bouncy/overshoot motion is clearly present but controlled
-- [ ] multiple original object families move around the typography
-- [ ] at least two object handoffs connect scene boundaries
-- [ ] at least three distinct scene transition patterns are present
-- [ ] generic fade-up is not the dominant animation
-- [ ] old global `routePath` is removed from the production landing
-- [ ] any SVG path drawing is local and purposeful
-- [ ] no SuperPlay proprietary artwork/copy is copied
-- [ ] no hotlinked SuperPlay assets are used
-- [ ] `/create` behavior remains intact
-- [ ] `/wall` behavior remains intact
-- [ ] Socket.IO/backend behavior remains intact
-- [ ] desktop layout is visually strong at 1440×900 and 1366×768
-- [ ] tablet/mobile remain usable
-- [ ] reduced-motion mode works
-- [ ] no obvious horizontal overflow
-- [ ] no console errors caused by the landing
-- [ ] `npm run check` passes
-- [ ] `npm run build` passes
+## Design
+
+- [ ] previous SuperPlay/game-playground visual language is gone
+- [ ] the filmstrip is the dominant visual spine
+- [ ] the filmstrip is clearly recognizable
+- [ ] frame windows and perforations are visible
+- [ ] the strip remains continuous through the landing
+- [ ] sections visually attach to the strip
+- [ ] page does not look like stacked independent cards
+
+## Content system
+
+- [ ] a section can contain text
+- [ ] a section can contain a button
+- [ ] a section can contain one or more images
+- [ ] a section can contain milestone/year content
+- [ ] film frames are reusable components
+- [ ] content can be changed without rewriting animation internals
+
+## Motion
+
+- [ ] scroll down advances/extends the filmstrip
+- [ ] scroll up rewinds/retracts it
+- [ ] bends/curves feel intentional
+- [ ] active frame emphasis works
+- [ ] motion does not obscure text or buttons
+- [ ] no generic fade-up system dominates the page
+
+## Product safety
+
+- [ ] `/create` still works
+- [ ] `/wall` still works
+- [ ] server/API/Socket.IO behavior remains unchanged
+- [ ] CTAs navigate correctly
+
+## Quality
+
+- [ ] no console errors
+- [ ] no ScrollTrigger debug markers
+- [ ] responsive layouts tested
+- [ ] reduced motion tested
+- [ ] `npm.cmd run check` passes
+- [ ] `npm.cmd run build` passes
 
 ---
 
-# 22. Codex handoff report
+# 31. Codex execution directive
 
-When implementation is complete, Codex must report:
+When asked to implement the new landing, Codex should interpret the task as:
 
-```text
-1. Files created
-2. Files modified
-3. Old landing patterns removed
-4. Scene architecture implemented
-5. Motion system implemented
-6. Where object handoffs occur
-7. Where pin/scrub is used
-8. Whether Lenis was added and why
-9. Mobile/reduced-motion changes
-10. npm run check result
-11. npm run build result
-12. Known visual limitations / assets still needing replacement
-```
+> Replace the existing landing design language with a continuous filmstrip-path experience. The filmstrip is the central visual and animation spine. Build reusable frames and a section system that can attach text, buttons, images, milestones, and CTAs around the strip. Remove old SuperPlay/game-playground visual concepts instead of layering the filmstrip on top of them. Preserve `/create`, `/wall`, and all backend/realtime behavior. Implement the static filmstrip first, validate scroll-driven advance/rewind, then build sections incrementally.
 
-Do not report "SuperPlay cloned" merely because GSAP animations exist.
+Do not reinterpret this as “keep the old landing and add a filmstrip decoration.”
 
-The target is achieved only when the **motion language and continuous animated-playground feeling** are visibly present while the page remains clearly FLASH 10.
+The filmstrip is the landing page architecture.
