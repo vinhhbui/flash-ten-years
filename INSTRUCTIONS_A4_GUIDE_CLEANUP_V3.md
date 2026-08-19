@@ -1,303 +1,530 @@
-# FLASH 10 — A4 Guide Cleanup V3
+# FLASH 10 — A4 Layered Character Compositing V3
 
-## 0. Purpose
+## 0. Purpose and priority
 
-This instruction fixes a residual preprocessing problem after the A4 scanner compositing changes.
+This document defines the **current desired scanner output semantics** for the physical A4 coloring workflow.
 
-The current desired sprite semantics are:
+It supersedes older A4 instructions wherever they imply either of these behaviors:
 
-- the canonical character interior remains opaque, including untouched white areas;
-- guest artwork inside the character is preserved;
-- guest artwork extending outside the character is preserved;
-- the printed dashed guide must disappear completely;
-- the A4 page outside the actual character/artwork remains transparent.
+- using the full `allowed-region-mask.svg` directly as an opaque white final silhouette;
+- keeping only guest-changed pixels and making all untouched character interior transparent.
 
-This specifically addresses the case where the outside half of the printed dashed guide survives as visible gray dashes around the final sprite.
-
-Do not redesign registration-marker alignment, scanner watching, submission persistence, Socket.IO, Live Wall, frame registry, or animation registry.
-
----
-
-# 1. Correct output rule
-
-The final PNG should conceptually be:
+The required model is now a **layered composition**:
 
 ```text
-OPAQUE CHARACTER BODY
-+
-GUEST DRAWING INSIDE
-+
-GUEST DRAWING OUTSIDE
--
-PRINTED DASHED GUIDE
-=
 FINAL SPRITE
+=
+BASE CHARACTER BODY LAYER
++
+USER PAINT LAYER
 ```
 
-The printed guide must never remain visible merely because part of its stroke lies outside `allowed-region-mask.svg`.
+The printed dashed guide is input/template metadata only. It must not become part of the final sprite.
+
+Keep the current four-registration-marker alignment architecture. Do not redesign scanner watching, ingestion, persistence, Socket.IO, Live Wall, frame registry, or animation registry.
 
 ---
 
-# 2. Important distinction
+# 1. Product behavior
 
-Outside the canonical character shape there are two very different kinds of pixels:
+A guest receives a known A4 template. They may:
 
-## Printed template pixels
+- color only part of the character;
+- leave large areas untouched;
+- paint over the dashed guide;
+- paint beyond the dashed guide;
+- add whiskers, ears, hair, horns, stars, accessories, or other marks outside the original shape;
+- make imperfect thick strokes crossing the boundary.
 
-Examples:
+All of these behaviors are valid.
 
-- gray dashed guide;
-- anti-aliased gray guide edge pixels;
-- small rasterization halo around the printed guide.
+The final animated PNG should feel like one complete character:
 
-These should become transparent outside the character.
+- untouched interior remains opaque white;
+- user colors inside remain visible;
+- user-added artwork outside remains visible;
+- unused A4 paper outside becomes transparent;
+- the printed dashed guide disappears;
+- there is **no unwanted white outer rim/halo caused by the canonical template mask**.
 
-## Guest-added pixels
+---
 
-Examples:
+# 2. Root cause of the current white-rim bug
 
+The current implementation in `server/src/scanner/templateCompositing.ts` conceptually does this:
+
+```ts
+if (insideCharacter && preserveCharacterInterior) {
+  output = opaqueWhite;
+}
+```
+
+where `insideCharacter` is determined directly from `allowed-region-mask.svg`.
+
+That means the same mask is doing two jobs:
+
+1. describing the canonical character boundary;
+2. defining the final opaque white body silhouette.
+
+Those jobs must be separated.
+
+If the canonical mask reaches the printed outline/boundary, forcing the whole mask to opaque white can leave a visible white ring around the user's painted contour even after the dashed guide itself has been removed.
+
+Therefore:
+
+> **`allowed-region-mask.svg` must no longer automatically mean “fill every pixel here white.”**
+
+---
+
+# 3. Required layered model
+
+## Layer A — Base Character Body Layer
+
+This is the stable white body that prevents the character from looking hollow when the guest leaves areas uncolored.
+
+Requirements:
+
+- opaque white;
+- contains only the intended **interior core** of the character;
+- does not include the printed dashed guide;
+- does not produce a white rim around the original guide boundary;
+- exists independently from guest paint detection.
+
+Preferred implementation:
+
+```text
+body-fill-mask.svg
+```
+
+Alternative P0 implementation:
+
+```text
+allowed-region-mask
+    ↓ erode/inset
+bodyFillMask
+```
+
+The important rule is that the body-fill mask is **inset from the canonical outer boundary** enough that unpainted white pixels do not appear as a halo around the user's contour.
+
+Do not simply alias:
+
+```text
+bodyFillMask = allowedRegionMask
+```
+
+unless a test proves that template has no white-rim problem.
+
+## Layer B — User Paint Layer
+
+This contains only meaningful guest-added pixels detected from the normalized scan.
+
+It may contain:
+
+- red/green/blue/black coloring inside;
+- thin pen/pencil details;
+- user paint over the guide;
+- thick paint crossing the character boundary;
 - whiskers;
-- ears;
-- horns;
-- accessories;
-- thick marker overshoot;
-- hand-drawn lines crossing the guide.
+- external ears/horns/hair;
+- stars/accessories;
+- intentional overshoot.
 
-These should remain if they are meaningful guest changes inside the configured artwork capture region.
+Outside the user-painted strokes, this layer is transparent.
 
-Do not solve the problem by hard-clipping everything outside the character mask.
+The layer must be detected primarily by comparing:
+
+```text
+normalized scan
+VS
+canonical blank template
+```
+
+not by checking whether a pixel is merely non-white.
 
 ---
 
-# 3. Required three-zone compositing behavior
+# 4. Mask responsibilities
 
-For each canonical A4 pixel after marker-based alignment:
+The system should treat these as separate concepts.
 
-## Zone A — inside canonical character mask
+## A. `allowed-region-mask.svg`
 
-If inside `allowed-region-mask.svg`:
+Role:
 
-- output alpha = 255;
-- preserve user color when user changed the pixel;
-- if an unchanged printed guide pixel is present, replace it with normalized paper white;
-- if no user drawing exists at that location, keep normalized white/paper color.
+- canonical/reference character region;
+- geometry source for deriving body fill and capture regions;
+- not automatically the final white alpha mask.
 
-Result: the character body never becomes transparent inside.
+## B. `body-fill-mask.svg` or derived body-fill mask
 
-## Zone B — outside character but inside artwork capture region
+Role:
 
-If outside `allowed-region-mask.svg` but still inside the configured expanded capture region:
+- defines only where untouched character pixels should stay opaque white;
+- should be inset from the outer guide/boundary;
+- must not create a white outer rim.
 
-- preserve only meaningful guest-added pixels;
-- unchanged blank paper becomes transparent;
-- unchanged printed dashed guide becomes transparent;
-- guide anti-alias/halo pixels become transparent;
-- if the user painted or drew over the guide, preserve the user pixel.
+## C. `guide-stroke-mask.svg`
 
-This is the critical fix.
+Role:
 
-## Zone C — outside artwork capture region
+- identifies printed guide pixels and their cleanup band;
+- unchanged guide must disappear;
+- user paint over the guide must survive.
+
+## D. artwork capture region
+
+Role:
+
+- defines how far outside the canonical character user-added marks may be preserved;
+- may be derived by dilating the canonical mask;
+- should include whiskers/accessories/overshoot but exclude title/footer/markers.
+
+The reusable mental model is:
+
+```text
+canonical shape      = geometry reference
+body fill mask       = white interior
+user difference mask = guest-created artwork
+capture mask         = allowed external decoration area
+guide mask           = printed content to suppress
+```
+
+---
+
+# 5. Required final compositing semantics
+
+For each pixel after four-marker page normalization:
+
+## Zone A — inside `bodyFillMask`
+
+Default:
+
+```text
+opaque white
+```
+
+If guest changed the pixel meaningfully:
+
+```text
+use scanned guest pixel
+```
+
+If the original dashed guide is unchanged there:
+
+```text
+keep opaque white
+```
+
+Result: untouched internal face/body areas remain solid white.
+
+## Zone B — between `bodyFillMask` and the canonical outer shape
+
+This is the critical anti-white-rim boundary zone.
+
+Default:
+
+```text
+transparent
+```
+
+Only keep pixels when they are meaningful guest-added content.
+
+Examples:
+
+```text
+untouched paper near boundary → transparent
+untouched printed guide       → transparent
+red paint near boundary       → preserve red
+black paint near boundary     → preserve black
+```
+
+Do not automatically fill this band white.
+
+## Zone C — outside canonical shape but inside artwork capture region
+
+Default:
+
+```text
+transparent
+```
+
+Preserve only meaningful guest-added pixels.
+
+Examples:
+
+```text
+whisker             → keep
+external blue ear   → keep
+star/accessory      → keep
+marker overshoot    → keep
+blank paper         → transparent
+printed gray guide  → transparent
+```
+
+## Zone D — outside artwork capture region
 
 Always transparent.
 
-This excludes title, instructions, marker blocks, and unrelated A4 content.
-
 ---
 
-# 4. Do not classify outside strokes by paper threshold alone
+# 6. Guide removal behavior
 
-Outside the character, do NOT keep every non-white or non-paper pixel.
+Guide removal and body fill are separate operations.
 
-That incorrectly preserves the printed dashed guide.
+Do not solve guide removal by deleting every pixel under `guide-stroke-mask`.
 
-Outside pixels must be classified primarily by difference from the canonical blank template.
+Inside the guide cleanup band compare the scan against the blank template.
 
-Conceptually:
+If pixel still matches template/guide closely:
 
 ```text
-actual normalized scan pixel
-      VS
-canonical blank template pixel
+inside bodyFillMask  → opaque white
+outside bodyFillMask → transparent
 ```
 
-If they are close:
+If the guest painted over that location:
 
 ```text
-unchanged template content
-→ transparent outside character
+preserve user pixel
 ```
 
-If they differ enough:
+Required examples:
 
 ```text
-candidate guest-added pixel
-→ preserve
+unchanged gray guide inside body core  → white
+unchanged gray guide near/outside edge → transparent
+red over guide                         → red
+black over guide                       → black
+green over guide                       → green
 ```
 
-This lets whiskers survive while unchanged gray guide disappears.
+Use the existing configurable cleanup band such as `guide.cleanupBandPaddingPx`; do not rely on exact grayscale matching because scan interpolation and anti-aliasing vary.
 
 ---
 
-# 5. Guide cleanup band
+# 7. User Paint Layer extraction
 
-The printed guide is rasterized and anti-aliased, so a one-pixel mask is not sufficient.
+Detect the guest layer before final white-body composition.
 
-Use `guide-stroke-mask.svg` or the configured guide extraction width to build a **guide cleanup band** slightly wider than the visible printed stroke.
-
-The repo already has `guide.extractionMaskWidth` in the template config; use it or an equivalent configurable field rather than introducing unrelated magic numbers.
-
-Inside this cleanup band:
+Recommended process:
 
 ```text
-if scan pixel ≈ canonical guide/template pixel
-    → unchanged guide
-
-    if inside character:
-        replace with opaque white
-
-    if outside character:
-        alpha = 0
-
-if scan pixel differs meaningfully from canonical template
-    → user painted over guide
-    → preserve user pixel
+normalized scan
+    ↓
+blank-template difference
+    ↓
+guide-aware thresholds
+    ↓
+user-change candidates
+    ↓
+component/noise filtering
+    ↓
+USER PAINT LAYER
 ```
 
-This cleanup band should also remove gray anti-alias fringe around the guide.
+Keep user changes both inside and outside the canonical shape when they are within the capture region.
+
+Outside the body, do not preserve every gray/non-white pixel. Compare against the blank template so printed content disappears while a newly drawn gray whisker survives.
 
 ---
 
-# 6. Desired behavior using the current real example
+# 8. New template configuration
 
-The current sprite shows:
+Extend the current template output configuration with a body-fill concept.
 
-- white character interior: correct;
-- red/blue/green/black user drawing: correct;
-- whiskers outside: correct;
-- gray dashed border still visible around the character: incorrect.
+Preferred asset-backed form:
 
-Expected output:
+```json
+{
+  "output": {
+    "preserveCharacterInterior": true,
+    "bodyFillMode": "asset",
+    "bodyFillMask": "body-fill-mask.svg",
+    "preserveOutsideUserStrokes": true,
+    "outsideCaptureRadiusPx": 180,
+    "outsideDifferenceThreshold": 45,
+    "minimumOutsideComponentPixels": 10,
+    "minimumGuestArtworkPixels": 24,
+    "cropPaddingRatio": 0.04
+  }
+}
+```
+
+Acceptable P0 derived form:
+
+```json
+{
+  "output": {
+    "preserveCharacterInterior": true,
+    "bodyFillMode": "eroded-allowed-mask",
+    "bodyFillInsetPx": 10,
+    "preserveOutsideUserStrokes": true
+  }
+}
+```
+
+Exact inset value must be tuned with the real scan fixture. Do not blindly use `10` as a universal value.
+
+If `body-fill-mask.svg` is added, future frame/template generation should generate it from the same canonical geometry/config so masks remain synchronized.
+
+---
+
+# 9. Current recommended architecture
+
+Keep `preprocessScan()` as the public boundary.
+
+`templateCompositing.ts` should conceptually operate as:
 
 ```text
-KEEP
-- opaque white character interior
-- red outline/coloring created by user
-- blue ears
-- black facial details
-- green details
-- whiskers outside
-- intentional overshoot outside
-
-REMOVE
-- every untouched gray dash around the body
-- gray anti-aliased halo from the printed guide
-- A4 background
-- title/subtitle/footer
-- registration markers
+composeTemplateArtwork()
+    ↓
+create/load bodyFillMask
+    ↓
+create artworkCaptureMask
+    ↓
+create guideCleanupBand
+    ↓
+detectGuestChangeMask
+    ↓
+filter meaningful outside components
+    ↓
+composeBaseBodyLayer
+    ↓
+composeUserPaintLayer
+    ↓
+merge layers
+    ↓
+transparent outside unused regions
 ```
 
-The final outline should be determined by the user's artwork plus the white character body, not by the printed dashed template.
+Recommended final composition pseudocode:
+
+```ts
+if (bodyFillMask[pixel]) {
+  output = guestChanged[pixel]
+    ? scanPixel
+    : opaqueWhite;
+}
+else if (guestChanged[pixel] && captureMask[pixel]) {
+  output = scanPixel;
+}
+else {
+  output = transparent;
+}
+```
+
+Guide suppression must happen during guest-change classification so unchanged guide pixels are not mistakenly reintroduced as user artwork.
 
 ---
 
-# 7. Critical edge cases
+# 10. Blank-template validation
 
-## User paints red over dashed guide outside the character
+Because Layer A is always opaque white, final output alpha coverage cannot determine whether the guest drew anything.
 
-Preserve red.
-
-Do not erase simply because the pixel is inside guide cleanup band.
-
-## User draws gray whisker outside the character
-
-Preserve it if it differs from the canonical blank template and forms meaningful guest content.
-
-Do not remove all gray pixels by color.
-
-## Untouched gray dashed guide outside the character
-
-Transparent.
-
-## Untouched gray dashed guide inside the character
-
-Opaque white.
-
-## Thick user stroke crosses from inside to outside
-
-Preserve the complete meaningful stroke within the capture region.
-
----
-
-# 8. Recommended compositing order
-
-Use an order similar to:
+Keep a separate metric such as:
 
 ```text
-1. normalize page using the existing 4 markers
-2. load blank template
-3. load allowed-region mask
-4. load guide-stroke mask
-5. derive artwork capture region
-6. derive widened guide cleanup band
-7. compute guest-difference mask versus blank template
-8. compose opaque white interior
-9. overlay guest pixels inside character
-10. preserve meaningful guest pixels outside character
-11. explicitly suppress unchanged guide pixels outside character
-12. suppress all other page pixels
-13. crop transparent margins around full sprite
+guestChangedPixelCount
 ```
 
-Do not let outside-stroke extraction run before guide/template suppression in a way that reintroduces the guide.
+computed from the User Paint Layer before white body composition.
+
+An untouched template must still fail as no meaningful guest artwork.
 
 ---
 
-# 9. Blank-template detection remains separate
+# 11. Crop behavior
 
-Because the character interior is always opaque white, final alpha coverage cannot determine whether the guest drew anything.
+Crop only after final layer composition.
 
-Continue using a separate guest-change metric such as `guestChangedPixelCount` before final compositing.
+The crop must include:
 
-A blank template should still fail as "no meaningful guest artwork".
+- white body core;
+- user paint inside;
+- whiskers;
+- ears/accessories outside;
+- meaningful overshoot.
 
----
+It must exclude:
 
-# 10. Required tests
+- page title;
+- footer/instructions;
+- registration markers;
+- blank A4 paper.
 
-Add regression tests for at least:
-
-1. untouched guide outside character → transparent;
-2. untouched guide inside character → opaque white;
-3. red paint over guide outside character → red preserved;
-4. black paint over guide outside character → black preserved;
-5. gray whisker outside character → preserved when guest-added;
-6. untouched blank paper outside → transparent;
-7. guide anti-alias fringe → removed;
-8. white untouched character interior → opaque;
-9. thick stroke crossing boundary → preserved across boundary;
-10. title/footer/markers → absent;
-11. final crop includes whiskers/accessories but not page content.
-
-Use a synthetic fixture modeled on the real failing screenshot where the gray dashed outline is still visible around an otherwise correct sprite.
+Do not crop only to the original canonical body box because that would cut external user artwork.
 
 ---
 
-# 11. Acceptance criteria
+# 12. Required regression tests
 
-Do not consider the task complete until:
+Add/update tests for all of these cases.
 
-- [ ] white character interior remains opaque;
-- [ ] untouched guide dashes outside the character are fully transparent;
-- [ ] untouched guide dashes inside become white, not transparent;
-- [ ] user paint over the guide survives;
-- [ ] whiskers and intentional outside artwork survive;
-- [ ] guide anti-alias halo is removed;
-- [ ] A4 page text and markers remain excluded;
+1. **Untouched interior**
+   - guest colors only a small area;
+   - center/face/body untouched area remains opaque white.
+
+2. **No white outer rim**
+   - no guest paint in the boundary band;
+   - pixels outside `bodyFillMask` are transparent even if they are still inside `allowed-region-mask`.
+
+3. **User paint at boundary**
+   - red/black/green guest paint near or across the boundary remains visible.
+
+4. **Untouched guide in white core**
+   - becomes white, not gray and not transparent.
+
+5. **Untouched guide outside body core**
+   - fully transparent, including anti-alias halo.
+
+6. **Paint over guide**
+   - guest color survives.
+
+7. **Whiskers outside**
+   - gray/black whiskers remain when they differ from the blank template.
+
+8. **External ear/accessory**
+   - user-created external decoration remains.
+
+9. **Blank paper**
+   - remains transparent outside body/user art.
+
+10. **Blank template**
+    - still rejected as no meaningful guest artwork.
+
+11. **Page content**
+    - title, instructions, footer, and four markers never appear in final output.
+
+12. **Crop**
+    - includes whiskers/accessories but does not include blank page space.
+
+13. **Existing marker alignment**
+    - rotated/translated/perspective input still aligns through the current four-marker workflow.
+
+Use a regression fixture modeled on the real failure: character interior is correctly white, guide is already removed, but an unwanted white halo/rim remains around the user's painted contour.
+
+---
+
+# 13. Acceptance criteria
+
+Do not consider this task complete until all are true:
+
+- [ ] `allowed-region-mask` is no longer blindly used as the full white alpha silhouette;
+- [ ] a distinct body-fill mask/core exists;
+- [ ] untouched body core remains opaque white;
+- [ ] boundary area without user paint can become transparent;
+- [ ] no unwanted white rim remains around the character;
+- [ ] user paint near/crossing the boundary survives;
+- [ ] user artwork outside the canonical shape survives within capture limits;
+- [ ] unchanged printed guide is invisible;
+- [ ] guide anti-alias halo is invisible;
+- [ ] blank paper is transparent;
+- [ ] title/footer/markers are excluded;
 - [ ] blank-template rejection still works;
-- [ ] existing 4-marker alignment still works;
-- [ ] scanner ingest, persistence, Socket.IO, wall rendering remain unchanged;
-- [ ] tests/check/build pass.
+- [ ] current four-marker alignment remains unchanged;
+- [ ] scanner ingestion/persistence/Socket.IO/Live Wall behavior remains unchanged;
+- [ ] tests, type checks, and production build pass.
 
 The core product rule is:
 
-> **Keep the white character body and the guest's actual drawing, but make the printed dashed template outline completely disappear.**
+> **Use one layer for the stable white character interior and a separate layer for the guest's real paint. Keep the inside solid, keep genuine outside decorations, but never let the template mask create a white outer rim.**
