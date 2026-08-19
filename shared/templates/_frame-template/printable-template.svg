@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2480 3508" width="210mm" height="297mm">
+  <rect width="2480" height="3508" fill="#ffffff"/>
+
+  <!-- Optional alignment markers. Keep outside the drawable region. -->
+  <g id="registration-markers" fill="#202020">
+    <rect x="170" y="250" width="26" height="26" rx="3"/>
+    <rect x="2284" y="250" width="26" height="26" rx="3"/>
+    <rect x="170" y="3232" width="26" height="26" rx="3"/>
+    <rect x="2284" y="3232" width="26" height="26" rx="3"/>
+  </g>
+
+  <text x="1240" y="420" text-anchor="middle" font-family="Arial, sans-serif" font-size="62" font-weight="700" fill="#222222">
+    FLASH 10 — COLOR YOUR CHARACTER
+  </text>
+  <text x="1240" y="500" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" fill="#777777">
+    Draw and color inside the faint dashed shape
+  </text>
+
+  <!--
+    IMPORTANT:
+    This path is the canonical frame shape.
+    When creating a new frame, keep the same d="..." path in:
+      1. printable-template.svg
+      2. allowed-region-mask.svg
+      3. guide-stroke-mask.svg
+  -->
+  <path
+    id="frame-shape"
+    d="M 865 1050
+       C 735 900 760 730 930 790
+       C 1035 670 1200 650 1325 775
+       C 1490 695 1685 795 1645 1030
+       C 1810 1165 1845 1405 1710 1570
+       C 1840 1745 1775 1995 1585 2090
+       C 1545 2315 1360 2470 1175 2390
+       C 1005 2485 795 2380 755 2180
+       C 565 2075 525 1840 665 1680
+       C 525 1510 565 1260 720 1150
+       C 765 1115 815 1080 865 1050 Z"
+    fill="none"
+    stroke="#b8b8b8"
+    stroke-opacity="0.35"
+    stroke-width="10"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-dasharray="34 26"
+  />
+
+  <text x="1240" y="2870" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" fill="#8a8a8a">
+    The dashed outline is only a guide and will not appear on the Live Wall.
+  </text>
+</svg>
