@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import type { RegistrationMarkerConfig } from "./registrationMarkers.js";
 
 interface TemplateConfiguration {
   id: string;
@@ -13,14 +14,10 @@ interface TemplateConfiguration {
     heightMm: number;
     rasterDensity: number;
   };
+  registrationMarkers: RegistrationMarkerConfig;
   differenceThreshold: number;
   guideDifferenceThreshold: number;
-  maximumGuideAlignmentDifference: number;
   cropPaddingRatio: number;
-  alignment: {
-    radius: number;
-    step: number;
-  };
   minimumVisiblePixels: number;
 }
 
@@ -30,24 +27,31 @@ export interface TemplatePreprocessProfile extends TemplateConfiguration {
   guideStrokeMaskPath: string;
 }
 
-const templateDirectory = path.resolve(import.meta.dirname, "../../../shared/templates/cat-v1");
-let catTemplateProfile: Promise<TemplatePreprocessProfile> | undefined;
+const templateDirectories = new Map([
+  ["a4-cat-v1", path.resolve(import.meta.dirname, "../../../shared/templates/cat-v1")],
+]);
+const templateProfiles = new Map<string, Promise<TemplatePreprocessProfile>>();
 
 export async function getTemplatePreprocessProfile(profileId: string): Promise<TemplatePreprocessProfile> {
-  if (profileId !== "a4-cat-v1") {
+  const templateDirectory = templateDirectories.get(profileId);
+  if (!templateDirectory) {
     throw new Error(`Unsupported scanner preprocess profile: ${profileId}`);
   }
 
-  catTemplateProfile ??= loadCatTemplateProfile();
-  return catTemplateProfile;
+  let profile = templateProfiles.get(profileId);
+  if (!profile) {
+    profile = loadTemplateProfile(profileId, templateDirectory);
+    templateProfiles.set(profileId, profile);
+  }
+  return profile;
 }
 
-async function loadCatTemplateProfile(): Promise<TemplatePreprocessProfile> {
+async function loadTemplateProfile(profileId: string, templateDirectory: string): Promise<TemplatePreprocessProfile> {
   const configuration = JSON.parse(
     await readFile(path.join(templateDirectory, "template.config.json"), "utf8"),
   ) as TemplateConfiguration;
-  if (configuration.id !== "a4-cat-v1") {
-    throw new Error("The cat template configuration has an unexpected profile id");
+  if (configuration.id !== profileId) {
+    throw new Error(`The template configuration has an unexpected profile id: ${configuration.id}`);
   }
 
   return {

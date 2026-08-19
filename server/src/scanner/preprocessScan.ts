@@ -1,4 +1,7 @@
 import sharp from "sharp";
+import type { RawRgbaImage } from "./imageTypes.js";
+import { normalizePageFromMarkers } from "./pageAlignment.js";
+import { detectRegistrationMarkers } from "./registrationMarkers.js";
 import { getTemplatePreprocessProfile, type TemplatePreprocessProfile } from "./templateProfiles.js";
 
 const maxInputPixels = 40_000_000;
@@ -41,18 +44,6 @@ async function preprocessGenericScan(inputPath: string): Promise<Buffer> {
     .toBuffer();
 }
 
-interface RawRgbaImage {
-  data: Buffer;
-  width: number;
-  height: number;
-}
-
-interface Alignment {
-  x: number;
-  y: number;
-  score: number;
-}
-
 async function preprocessTemplateScan(inputPath: string, profile: TemplatePreprocessProfile): Promise<Buffer> {
   const scan = await normalizeScanToTemplate(inputPath, profile);
   const [blankTemplate, allowedRegionMask, guideStrokeMask] = await Promise.all([
@@ -65,17 +56,12 @@ async function preprocessTemplateScan(inputPath: string, profile: TemplatePrepro
   assertSameCanvas(scan, guideStrokeMask, "guide stroke mask");
 
   const paperColor = estimateTemplatePaperColor(scan, allowedRegionMask, guideStrokeMask);
-  const alignment = findGuideAlignment(scan, blankTemplate, guideStrokeMask, paperColor, profile);
-  if (alignment.score > profile.maximumGuideAlignmentDifference) {
-    throw new ScanPreprocessError("could not align the scan with the canonical template guide");
-  }
   const artwork = extractTemplateArtwork(
     scan,
     blankTemplate,
     allowedRegionMask,
     guideStrokeMask,
     paperColor,
-    alignment,
     profile,
   );
   const visiblePixels = countVisiblePixels(artwork.data);
@@ -102,15 +88,31 @@ async function normalizeScanToTemplate(inputPath: string, profile: TemplatePrepr
   const portraitSource = metadata.width && metadata.height && metadata.width > metadata.height
     ? source.rotate(90)
     : source;
-  const { data, info } = await portraitSource
-    .resize(profile.canvas.width, profile.canvas.height, { fit: "fill" })
-    .ensureAlpha()
-    .raw()
-    .toBuffer({ resolveWithObject: true });
+  const { data, info } = await portraitSource.ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   if (info.channels !== 4) {
     throw new ScanPreprocessError("scan could not be converted to RGBA pixels");
   }
-  return { data, width: info.width, height: info.height };
+  const rawScan = { data, width: info.width, height: info.height };
+  const markers = detectRegistrationMarkers(
+    rawScan,
+    profile.canvas.width,
+    profile.canvas.height,
+    profile.registrationMarkers,
+  );
+  if (!markers) {
+    throw new ScanPreprocessError("could not detect all four registration markers on the A4 page");
+  }
+  try {
+    return normalizePageFromMarkers(
+      rawScan,
+      markers,
+      profile.canvas.width,
+      profile.canvas.height,
+      profile.registrationMarkers,
+    );
+  } catch (error) {
+    throw new ScanPreprocessError(`could not normalize the A4 page from registration markers: ${describeError(error)}`);
+  }
 }
 
 async function readRgbaImage(filePath: string, density?: number): Promise<RawRgbaImage> {
@@ -156,66 +158,20 @@ function estimateTemplatePaperColor(
   return { red: median(red), green: median(green), blue: median(blue) };
 }
 
-function findGuideAlignment(
-  scan: RawRgbaImage,
-  blankTemplate: RawRgbaImage,
-  guideStrokeMask: RawRgbaImage,
-  paperColor: Rgb,
-  profile: TemplatePreprocessProfile,
-): Alignment {
-  let bestAlignment: Alignment = { x: 0, y: 0, score: Number.POSITIVE_INFINITY };
-  let bestScore = Number.POSITIVE_INFINITY;
-  const sampleStep = 3;
-  for (let offsetY = -profile.alignment.radius; offsetY <= profile.alignment.radius; offsetY += profile.alignment.step) {
-    for (let offsetX = -profile.alignment.radius; offsetX <= profile.alignment.radius; offsetX += profile.alignment.step) {
-      let score = 0;
-      let sampleCount = 0;
-      for (let y = 0; y < scan.height; y += sampleStep) {
-        const scanY = y + offsetY;
-        if (scanY < 0 || scanY >= scan.height) continue;
-        for (let x = 0; x < scan.width; x += sampleStep) {
-          const offset = (y * scan.width + x) * 4;
-          if (guideStrokeMask.data[offset]! <= 128) continue;
-          const scanX = x + offsetX;
-          if (scanX < 0 || scanX >= scan.width) continue;
-          const scanOffset = (scanY * scan.width + scanX) * 4;
-          const corrected = correctPaperColor(scan.data, scanOffset, paperColor);
-          const difference = Math.abs(corrected.red - blankTemplate.data[offset]!)
-            + Math.abs(corrected.green - blankTemplate.data[offset + 1]!)
-            + Math.abs(corrected.blue - blankTemplate.data[offset + 2]!);
-          score += Math.min(difference, 120);
-          sampleCount += 1;
-        }
-      }
-      if (sampleCount && score / sampleCount < bestScore) {
-        bestScore = score / sampleCount;
-        bestAlignment = { x: offsetX, y: offsetY, score: bestScore };
-      }
-    }
-  }
-  return bestAlignment;
-}
-
 function extractTemplateArtwork(
   scan: RawRgbaImage,
   blankTemplate: RawRgbaImage,
   allowedRegionMask: RawRgbaImage,
   guideStrokeMask: RawRgbaImage,
   paperColor: Rgb,
-  alignment: Alignment,
   profile: TemplatePreprocessProfile,
 ): RawRgbaImage {
   const artwork = Buffer.alloc(scan.data.length);
   for (let y = 0; y < scan.height; y += 1) {
-    const scanY = y + alignment.y;
-    if (scanY < 0 || scanY >= scan.height) continue;
     for (let x = 0; x < scan.width; x += 1) {
       const targetOffset = (y * scan.width + x) * 4;
       if (allowedRegionMask.data[targetOffset]! <= 128) continue;
-      const scanX = x + alignment.x;
-      if (scanX < 0 || scanX >= scan.width) continue;
-      const scanOffset = (scanY * scan.width + scanX) * 4;
-      const corrected = correctPaperColor(scan.data, scanOffset, paperColor);
+      const corrected = correctPaperColor(scan.data, targetOffset, paperColor);
       const difference = Math.hypot(
         corrected.red - blankTemplate.data[targetOffset]!,
         corrected.green - blankTemplate.data[targetOffset + 1]!,
@@ -224,10 +180,10 @@ function extractTemplateArtwork(
       const threshold = guideStrokeMask.data[targetOffset]! > 128
         ? profile.guideDifferenceThreshold
         : profile.differenceThreshold;
-      if (difference <= threshold || scan.data[scanOffset + 3]! < 128) continue;
-      artwork[targetOffset] = scan.data[scanOffset]!;
-      artwork[targetOffset + 1] = scan.data[scanOffset + 1]!;
-      artwork[targetOffset + 2] = scan.data[scanOffset + 2]!;
+      if (difference <= threshold || scan.data[targetOffset + 3]! < 128) continue;
+      artwork[targetOffset] = scan.data[targetOffset]!;
+      artwork[targetOffset + 1] = scan.data[targetOffset + 1]!;
+      artwork[targetOffset + 2] = scan.data[targetOffset + 2]!;
       artwork[targetOffset + 3] = 255;
     }
   }
@@ -554,4 +510,8 @@ function isPaperPixel(pixel: Rgb, alpha: number, paperColor: Rgb): boolean {
 function median(values: number[]): number {
   const sorted = [...values].sort((left, right) => left - right);
   return sorted[Math.floor(sorted.length / 2)]!;
+}
+
+function describeError(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }

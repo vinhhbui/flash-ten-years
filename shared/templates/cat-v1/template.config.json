@@ -12,13 +12,14 @@
   },
   "shape": {
     "path": "M153 445C102 432 88 368 115 304C92 264 100 216 122 185L105 80C103 61 113 59 128 73L185 126C216 107 252 108 281 126L330 73C344 60 354 64 351 84L339 185C365 218 370 265 345 304C355 325 360 348 357 370C373 345 398 342 411 363C429 393 400 435 345 430C330 442 315 447 302 448C260 466 198 466 153 445Z",
-    "transform": "translate(168 306) scale(2)"
+    "transform": "translate(130 290) scale(2.13)"
   },
   "guide": {
     "stroke": "#B8B8B8",
     "opacity": 1,
     "strokeWidth": 4,
-    "dashArray": "10 8"
+    "dashArray": "10 8",
+    "extractionMaskWidth": 14
   },
   "printLayout": {
     "title": "FLASH 10 - COLOR YOUR MEMORY",
@@ -26,13 +27,21 @@
     "completionNote": "Sau khi hoàn thành, đưa tờ giấy cho staff để scan.",
     "markerNote": "Không tô lên 4 ô vuông nhỏ ở các góc - dùng để căn chỉnh khi scan."
   },
-  "differenceThreshold": 40,
-  "guideDifferenceThreshold": 75,
-  "maximumGuideAlignmentDifference": 35,
-  "cropPaddingRatio": 0.04,
-  "alignment": {
-    "radius": 12,
-    "step": 2
+  "registrationMarkers": {
+    "cornerRoiRatio": 0.16,
+    "darkThreshold": 80,
+    "minimumSizeRatio": 0.45,
+    "maximumSizeRatio": 3,
+    "minimumSquareRatio": 0.55,
+    "markers": [
+      { "x": 59, "y": 59, "size": 18 },
+      { "x": 1163, "y": 59, "size": 18 },
+      { "x": 59, "y": 1677, "size": 18 },
+      { "x": 1163, "y": 1677, "size": 18 }
+    ]
   },
+  "differenceThreshold": 40,
+  "guideDifferenceThreshold": 150,
+  "cropPaddingRatio": 0.04,
   "minimumVisiblePixels": 24
 }

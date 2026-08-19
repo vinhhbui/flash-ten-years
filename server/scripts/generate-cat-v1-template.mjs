@@ -8,8 +8,9 @@ const configuration = JSON.parse(await readFile(path.join(templateDirectory, "te
 const { width, height } = configuration.canvas;
 const { widthMm, heightMm } = configuration.paper;
 const { path: shapePath, transform } = configuration.shape;
-const { stroke, opacity, strokeWidth, dashArray } = configuration.guide;
+const { stroke, opacity, strokeWidth, dashArray, extractionMaskWidth } = configuration.guide;
 const { title, subtitle, completionNote, markerNote } = configuration.printLayout;
+const { markers } = configuration.registrationMarkers;
 const header = "<!-- Generated from template.config.json. Run npm run generate:template after changing the geometry. -->";
 
 function svg(content) {
@@ -18,9 +19,9 @@ function svg(content) {
 
 const guidePath = `<path d="${shapePath}" transform="${transform}" fill="none" stroke="${stroke}" stroke-opacity="${opacity}" stroke-width="${strokeWidth}" stroke-dasharray="${dashArray}" stroke-linejoin="round"/>`;
 const allowedPath = `<path d="${shapePath}" transform="${transform}" fill="white"/>`;
-const guideMaskPath = `<path d="${shapePath}" transform="${transform}" fill="none" stroke="white" stroke-width="${strokeWidth}" stroke-dasharray="${dashArray}" stroke-linejoin="round"/>`;
+const guideMaskPath = `<path d="${shapePath}" transform="${transform}" fill="none" stroke="white" stroke-width="${extractionMaskWidth}" stroke-linejoin="round"/>`;
 const printedInstructions = [
-  `<g fill="#111111"><rect x="59" y="59" width="18" height="18"/><rect x="1163" y="59" width="18" height="18"/><rect x="59" y="1677" width="18" height="18"/><rect x="1163" y="1677" width="18" height="18"/></g>`,
+  `<g fill="#111111">${markers.map(({ x, y, size }) => `<rect x="${x}" y="${y}" width="${size}" height="${size}"/>`).join("")}</g>`,
   `<text x="620" y="130" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="#111111">${title}</text>`,
   `<text x="620" y="184" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#5E5E5E">${subtitle}</text>`,
   `<text x="620" y="1554" text-anchor="middle" font-family="Arial, sans-serif" font-size="21" fill="#666666">${completionNote}</text>`,
