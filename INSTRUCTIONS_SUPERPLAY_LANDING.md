@@ -1,46 +1,178 @@
-# FLASH 10 — SuperPlay-Inspired Animated Landing Page
+# FLASH 10 — SuperPlay Motion Clone Landing Instructions
 
 ## 0. Authority and scope
 
 This file is the **authoritative implementation instruction for the public landing route `/`** in `flash-ten-years`.
 
-It is intentionally scoped to the landing experience only.
+It is scoped to the landing experience only.
 
 Precedence:
 
-1. `INSTRUCTIONS.md` remains authoritative for the Memory Cat product flow, `/create`, `/wall`, API, Socket.IO, persistence, and LAN behavior.
-2. **This file is authoritative for `/`, landing architecture, motion design, visual storytelling, scroll behavior, responsive behavior, and landing performance.**
-3. `INSTRUCTIONS_GSAP_SCROLL_REFERENCE.md` is a technical reference only. Its long SVG route is **not** the production landing architecture.
-4. Do not break `/create`, `/wall`, the server, uploads, persistence, or Socket.IO while redesigning `/`.
+1. `INSTRUCTIONS.md` remains authoritative for the Memory Cat product flow, `/create`, `/wall`, API, Socket.IO, persistence, scanning-related product work, and event/LAN behavior.
+2. **This file is authoritative for `/`, landing architecture, visual direction, scroll choreography, motion system, responsive behavior, and landing performance.**
+3. `INSTRUCTIONS_GSAP_SCROLL_REFERENCE.md` is a technical reference experiment only. Its long SVG path is not the production landing architecture.
+4. Do not break `/create`, `/wall`, server behavior, uploads, persistence, or Socket.IO while redesigning `/`.
 
-Reference experience:
-
-- https://www.superplay.co/
-
-Goal: reproduce the **motion grammar, pacing, scene staging, kinetic typography, depth, and playful interaction language** of the reference while using original FLASH 10 content and assets.
-
-Do **not** copy SuperPlay logos, text, illustrations, proprietary assets, or source code.
+The task is not greenfield. The application already exists.
 
 ---
 
-# 1. Current repository baseline — read before editing
+# 1. Mission
 
-The project is already implemented. Do not treat this as a greenfield build.
+Replace the current landing page with an **original FLASH 10 animated playground whose interaction rhythm is strongly inspired by the SuperPlay homepage**.
 
-Current stack:
+Reference:
+
+- https://www.superplay.co/
+
+The target is **high behavioral fidelity, not brand copying**.
+
+Clone:
+
+```text
+motion rhythm
+scroll staging
+kinetic typography
+asset choreography
+playful depth
+visual interruptions
+scene-to-scene continuity
+bounce / overshoot character
+```
+
+Do not copy:
+
+```text
+SuperPlay logo
+SuperPlay copy
+SuperPlay game art
+SuperPlay coin/cube/domino images
+SuperPlay characters
+SuperPlay proprietary illustrations
+SuperPlay source code
+```
+
+Use original FLASH 10 visuals and placeholders that can later be replaced with real event assets.
+
+---
+
+# 2. Reference audit — researched before implementation
+
+This section records the verified characteristics of the current reference so Codex does not reduce the brief to a generic animated landing page.
+
+## 2.1 What is visible on the current SuperPlay homepage
+
+The homepage uses a short manifesto rather than many conventional marketing sections.
+
+Observed content beats include:
+
+```text
+It's only fun if you're winning
+
+BEING SUPER
+means we love to
+PUSH OUR LIMITS
+
+And
+we aim to
+find people who
+feel the same way
+
+Because
+it takes
+winners to build
+winning games
+
+Get exploring!
+```
+
+Between these text beats, the page contains many visual assets instead of plain whitespace.
+
+The live page exposes asset groups with names such as:
+
+```text
+HPcoin_*.png
+fragments-box-img-*.jpg
+HPcube_*.png
+slide-unit_*.png
+HPdomino_*.png
+hello-unit.gif
+```
+
+These filenames are evidence of the **visual grammar** only: repeated families of collectible/game-like objects, image fragments, sprite units, and animated media surrounding the typography.
+
+Do not copy those assets.
+
+## 2.2 Design intent from the design studio
+
+The design case study describes:
+
+- animated titles that bounce
+- game elements that move quickly around the screen
+- playful interactive challenges
+- bold typography
+- direct graphic language guiding the user through the manifesto
+- energetic, joyful, unapologetic visual behavior
+
+Therefore the target cannot be reproduced with only `fade + translateY` reveals.
+
+## 2.3 Development characteristics from the implementation studio
+
+The development case study identifies:
+
+- a custom front-end
+- WordPress as the CMS/platform
+- advanced scroll and hover animations
+- animation-rich layouts
+- image/video-heavy storytelling
+- performance and responsive requirements
+
+We do **not** need to copy WordPress. The existing FLASH React/Vite application is the correct implementation platform.
+
+## 2.4 Technical implementation note
+
+The public sources above do not prove that SuperPlay itself uses GSAP or Lenis.
+
+Do not claim that it does.
+
+For FLASH 10 we choose GSAP + ScrollTrigger because:
+
+- GSAP already exists in this repository
+- ScrollTrigger supports `scrub` and `pin`, which fit the required choreography
+- it avoids replacing the existing frontend stack
+
+Lenis is an optional smooth-scroll layer for our implementation, not a claim about SuperPlay's source stack.
+
+Reference sources for Codex:
+
+```text
+https://www.superplay.co/
+https://www.awesome-deloitte.com/project/superplay
+https://group107.com/case-studies/super-play/
+https://gsap.com/docs/v3/Plugins/ScrollTrigger/
+https://github.com/darkroomengineering/lenis
+```
+
+---
+
+# 3. Current repository baseline
+
+Before editing, inspect the actual repository.
+
+Current frontend stack:
 
 ```text
 React 18
 Vite
 TypeScript
 React Router
-GSAP + ScrollTrigger
+GSAP
+ScrollTrigger
 react-konva
 Socket.IO client
-Express + Socket.IO server
 ```
 
-Current app routes:
+Current routes:
 
 ```text
 /         -> LandingPage
@@ -48,166 +180,253 @@ Current app routes:
 /wall     -> WallPage
 ```
 
-Current landing implementation:
+Current landing implementation is mainly in:
 
 ```text
 client/src/pages/LandingPage.tsx
 client/src/styles.css
 ```
 
-The current `/` page already contains:
+The current landing already has:
 
-- several vertically stacked full-height sections
-- large editorial text
-- CSS-built decorative characters/shapes
-- one long SVG route through the page
-- `strokeDashoffset` drawing tied to scroll
-- generic `fade + translateY` reveal animation
+- full-height vertical sections
+- editorial headline blocks
+- CSS-built decorative characters
+- one page-wide SVG route
+- path drawing with `strokeDashoffset`
+- generic `[data-landing-reveal]` fade/translate animation
 
-This is a valid prototype, but it is **not the final target**.
+Treat this as a disposable prototype.
 
-The production redesign must move from:
+The production target must move from:
 
 ```text
-long editorial page
-+ one global SVG line
-+ reveal-on-scroll sections
+STACKED SECTIONS
++ GLOBAL SVG PATH
++ FADE-UP REVEALS
 ```
 
 to:
 
 ```text
-scene-based scrollytelling
-+ pinned cinematic beats
-+ kinetic typography
-+ choreographed objects
-+ layered depth
-+ strong transitions
+ONE CONTINUOUS ANIMATED PLAYGROUND
++ MANIFESTO-LIKE STORY BEATS
++ SCROLL-CONTROLLED TIMELINES
++ LARGE TYPOGRAPHY AS OBJECTS
++ CHOREOGRAPHED VISUAL SWARMS
++ STRONG OBJECT HANDOFFS
 ```
 
-The SVG route may be reused as a supporting effect in one scene, but it must no longer define the entire landing experience.
+Do not preserve the old DOM simply to minimize the diff.
 
 ---
 
-# 2. Product goal
+# 4. FLASH 10 story mapping
 
-Turn `/` into an immersive FLASH 10 anniversary experience that feels closer to an animated game intro / interactive campaign page than a conventional marketing site.
+Do not copy SuperPlay's literal manifesto.
 
-The landing should communicate:
+Map its **rhythm** to FLASH 10.
+
+Recommended narrative:
+
+## Beat A — Opening promise
 
 ```text
 FLASH 10
-#ketnoi
-#bansac
-#flashback
+TEN YEARS IN MOTION
 ```
 
-and then naturally lead into the Memory Cat experience.
+Optional small line:
+
+```text
+KẾT NỐI · BẢN SẮC · FLASHBACK
+```
+
+Purpose:
+
+- immediate identity hit
+- no paragraph-heavy hero
+- first visual impression should be motion and scale
+
+## Beat B — Flashback / 10 years
+
+```text
+10 YEARS
+OF MOMENTS
+THAT KEEP MOVING
+```
+
+Purpose:
+
+- map to the first major manifesto beat
+- introduce memory fragments/photos/timeline tokens
+
+## Beat C — Kết Nối
+
+```text
+KẾT NỐI
+EVERY PIECE
+BECOMES ONE STORY
+```
+
+Purpose:
+
+- many separated visual objects gather and connect
+- emphasize people/connections rather than company marketing
+
+## Beat D — Bản Sắc
+
+```text
+BẢN SẮC
+LEAVE YOUR MARK
+```
+
+Purpose:
+
+- individual colors/shapes/stickers become distinct
+- prepare the visual language for attendee-created artwork
+
+## Beat E — Memory Cat handoff
+
+```text
+MAKE A MEMORY
+BRING IT TO LIFE
+```
 
 Primary CTA:
 
 ```text
-CREATE YOUR MEMORY
-```
-
-Destination:
-
-```text
-/create
+CREATE YOUR MEMORY -> /create
 ```
 
 Secondary CTA:
 
 ```text
-VIEW LIVE WALL
+VIEW LIVE WALL -> /wall
 ```
 
-Destination:
-
-```text
-/wall
-```
-
-The Memory Cat experience should feel like the **payoff of the landing story**, not a separate tool linked from a generic homepage.
+The Memory Cat is the payoff of the landing journey.
 
 ---
 
-# 3. Core design principle
+# 5. Core composition rule — one playground, not six cards
 
-Do not clone the visual identity of SuperPlay.
+This is a critical requirement.
 
-Clone the **interaction system**:
+Do **not** implement the landing as six visually isolated rectangular sections with independent card layouts.
 
-- scroll-driven scene progress
-- oversized typography used as moving objects
-- pinning
-- parallax depth
-- exaggerated overshoot
-- squash/stretch
-- directional motion
-- foreground objects crossing the viewport
-- section takeovers
-- playful visual interruptions
-- transitions where one scene physically becomes the next
+The experience should feel like one continuous world.
 
-The final page must not feel like:
+Use sections/components for code organization, but visually connect them using:
+
+- shared background fields
+- objects that cross section boundaries
+- scale takeovers
+- persistent floating tokens
+- typography replacement
+- color transitions
+- foreground wipes
+
+A user should not strongly perceive:
 
 ```text
-section
-fade-up
-section
-fade-up
-section
-fade-up
+section ends
+new section starts
+section ends
+new section starts
 ```
 
-If most content still enters using identical `opacity + y`, the redesign is not complete.
+Instead they should perceive:
+
+```text
+one composition transforms
+-> becomes another composition
+-> objects carry forward
+-> new message emerges from the previous state
+```
 
 ---
 
-# 4. Motion grammar to reproduce
+# 6. Required motion grammar
 
-## 4.1 Scrollytelling
+## 6.1 Scroll is the playhead
 
-Scroll is a timeline controller, not just navigation.
+Scroll should control animation progress.
 
-Important scenes should use:
+Use scene-local GSAP timelines with ScrollTrigger.
+
+Core tools:
 
 ```text
-ScrollTrigger
 pin
 scrub
-scene-local timelines
+start/end tuning
+labels
+transform choreography
 ```
 
-A scene can remain visually fixed while its internal state changes over 150–300vh of scroll.
+Important beats may remain pinned for roughly `150–280vh` of scroll, but tune based on visual pacing rather than copying one fixed value.
 
-Scrolling upward must naturally rewind the scene.
+Scrolling upward must rewind naturally.
 
-Do not build custom wheel-direction logic unless truly necessary.
+Do not write wheel-direction handlers for basic reversal.
 
----
+## 6.2 Kinetic typography
 
-## 4.2 Kinetic typography
+Large words must behave as graphical objects.
 
-Large words are visual objects.
+Allowed transforms:
 
-Allow:
+```text
+translateX
+translateY
+rotate
+scale
+scaleX
+scaleY
+skew
+clip/mask
+viewport overflow
+```
 
-- `translateX/Y`
-- rotation
-- `scaleX`
-- `scaleY`
-- skew
-- clipping
-- viewport overflow
-- replacement of one word by another
+Examples:
 
-Important headings should be split into lines or words when needed.
+```text
+FLASH slams in from below
+10 stretches vertically then settles
+KẾT NỐI travels horizontally across the viewport
+BẢN SẮC rotates into a cropped composition
+MEMORY scales until it becomes a transition layer
+```
 
-Use accessible labels when visual splitting would otherwise produce poor screen-reader output.
+Split important headings into words/lines where useful.
 
-Primary heading motion should use strong physical character:
+Keep accessible reading order/labels.
+
+Do not animate every body paragraph word-by-word.
+
+## 6.3 Bounce, squash and overshoot
+
+The motion should feel physical and game-like.
+
+Use short impact states such as:
+
+```text
+0.65 scale
+-> 1.10 overshoot
+-> 0.97 recoil
+-> 1.00 settle
+```
+
+or:
+
+```text
+scaleX 1.18 / scaleY 0.82
+-> scaleX 0.94 / scaleY 1.07
+-> 1 / 1
+```
+
+Suggested easing families for non-scrub impact motion:
 
 ```text
 back.out
@@ -216,346 +435,226 @@ power3.out
 power4.out
 ```
 
-For pure scroll-scrub transformations, prefer restrained or `none` easing so progress remains predictable.
+For scrubbed timeline motion, prefer predictable easing such as `none` or restrained power easing.
 
----
+## 6.4 Visual swarms
 
-## 4.3 Squash, stretch, overshoot
+Each major beat should have a **small family of related visual objects** around the headline.
 
-Short entrance and impact moments should behave like game/cartoon motion.
-
-Examples:
+For FLASH 10, create original families such as:
 
 ```text
-compressed -> overshoot -> settle
-wide -> narrow -> settle
-scale 0 -> 1.10 -> 0.97 -> 1
+AnniversaryToken
+MemoryFragment
+PhotoCard
+FlashShape
+ConnectionDot
+StickerToken
+CatToken
+Spark
+Arrow
+Ribbon
 ```
 
-Do not animate every element elastically.
+Do not render all families at once.
 
-Reserve exaggerated motion for focal objects, section titles, and transitions.
+Use 4–10 meaningful objects per active composition rather than dozens of noisy particles.
 
----
+## 6.5 Depth
 
-## 4.4 Layered parallax
-
-Use a small number of intentional depth layers:
+Use intentional depth layers:
 
 ```text
 background
 midground
 foreground
-hero/focal object
+focal
 ```
 
-Typical relative movement:
+Suggested relative motion magnitude:
 
 ```text
-background  -> subtle
-midground   -> medium
-foreground  -> large
+background -> 0.10–0.18
+midground  -> 0.22–0.35
+foreground -> 0.45–0.70
 ```
 
-Desktop pointer parallax is optional and should affect only selected elements.
+These are design ratios, not literal required API values.
 
-Use GSAP `quickTo()` or transform-based motion rather than React state updates per frame.
+Foreground objects may cross the viewport faster and temporarily crop offscreen.
+
+## 6.6 Object handoff
+
+At least **two transitions** must reuse one visual object across beats.
+
+Examples:
+
+```text
+giant 10
+-> expands
+-> becomes circular field in Flashback
+
+photo fragment
+-> flies across transition
+-> becomes a connection node
+
+identity sticker
+-> enlarges
+-> reveals Memory Cat silhouette
+```
+
+This is a key technique for making the landing feel continuous.
 
 ---
 
-## 4.5 Flying / crossing objects
+# 7. Recommended production beats
 
-Decorative elements may:
+Use 5 core motion beats plus a final stable CTA state.
 
-- enter from outside viewport
-- cross behind text
-- cross in front of text
-- rotate while traveling
-- act as a wipe into the next scene
-- briefly overshoot before settling
+## Scene 1 — Hero playground
 
-Objects must be choreographed to the scene.
+Target: strongest fidelity checkpoint.
 
-Do not add random perpetual motion to everything.
-
----
-
-## 4.6 Scene transitions
-
-Use at least three distinct transition types across the page.
-
-Required pool:
-
-### Scale takeover
-
-A word, number, cat, photo, or colored shape grows until it fills the viewport and becomes the next background.
-
-### Directional sweep
-
-Foreground elements exit rapidly in one direction while the next scene enters from the opposite direction.
-
-### Typography replacement
-
-One giant word exits and another takes its exact visual position.
-
-### Color takeover
-
-A panel/blob expands until it becomes the next scene background.
-
-### Object handoff
-
-One visual object survives the section boundary and changes role in the next scene.
-
-Do not use the same transition repeatedly.
-
----
-
-# 5. Final landing scene architecture
-
-Use **6 major visual beats**.
-
-Do not collapse the experience into fewer than 5 meaningful scenes.
-
-Recommended production structure:
+Visual hierarchy:
 
 ```text
-Scene 1  Hero / FLASH 10
-Scene 2  Ten Years / Flashback
-Scene 3  Kết Nối / Connection
-Scene 4  Bản Sắc / Identity
-Scene 5  Memory Cat Reveal
-Scene 6  Final CTA
+small FLASH 10 identifier
+very large FLASH
+very large 10
+supporting KẾT NỐI · BẢN SẮC · FLASHBACK
+4–7 floating original FLASH objects
 ```
 
-Each scene must have its own visual purpose and motion system.
-
----
-
-# 6. Scene 1 — Hero / FLASH 10
-
-## Message
-
-Primary:
+Entrance choreography:
 
 ```text
-FLASH
-10 YEARS
-```
-
-Supporting idea:
-
-```text
-10 YEARS OF CONNECTIONS, IDENTITIES & FLASHBACKS
-```
-
-## Behavior
-
-Hero should occupy the full viewport.
-
-Initial entrance sequence should feel physical:
-
-```text
-background arrives
+background field reveals
 -> FLASH slams in
--> 10 YEARS stretches / overshoots
--> small objects fly into composition
--> settle
+-> 10 enters compressed
+-> 10 overshoots / stretches
+-> floating tokens zip into frame from mixed directions
+-> all settle into a deliberately imperfect composition
 ```
 
-The first wheel/trackpad movement should immediately transform the hero.
+First scroll movement:
 
-Do not let the first scroll simply move the hero upward like a normal page.
+- do not translate the whole hero upward
+- separate the tokens
+- move/rotate the word FLASH
+- enlarge `10`
+- let one foreground object cross camera
+- begin takeover into Scene 2
 
-Suggested scrub sequence:
+The hero must already feel convincing before Codex proceeds to the rest of the page.
+
+## Scene 2 — 10 Years / Flashback
+
+Pin this beat.
+
+Use the giant `10` as a visual anchor.
+
+Memory/photo fragments orbit, cross, stack, or slide around it.
+
+Possible movement:
 
 ```text
-0.00  hero fully composed
-0.20  foreground objects begin separating
-0.40  FLASH translates / rotates
-0.60  10 grows beyond viewport
-0.80  background/color begins takeover
-1.00  transition into Scene 2
+10 stabilizes center
+-> fragments enter one by one
+-> one row shifts horizontally while vertical scroll continues
+-> one photo comes toward camera using scale
+-> fragments clear rapidly
+-> one fragment survives into Connection
 ```
 
-The giant `10` may become the bridge into the next scene.
+Use placeholders if no real anniversary imagery exists.
 
----
+Clearly mark them as replaceable.
 
-# 7. Scene 2 — Ten Years / Flashback
+Do not download random copyrighted photos for permanent use.
 
-## Theme
+## Scene 3 — Kết Nối / Connection
 
-```text
-10 YEARS
-ONE CONTINUOUS STORY
-```
-
-## Behavior
-
-Pin the section.
-
-Use the number `10` or `10 YEARS` as the main visual anchor.
+Start with objects dispersed around the viewport.
 
 During scroll:
 
-- visual fragments orbit or pass around the number
-- dates such as `2016` and `2026` may appear
-- photo/card placeholders can cross the viewport
-- the large number may scale beyond screen bounds
-- depth layers move at different speeds
-
-Do not invent company-history facts.
-
-If real anniversary photos/milestones are not available, use clearly replaceable placeholders.
-
-A horizontal-memory-strip effect is allowed here if vertical scroll drives it.
-
----
-
-# 8. Scene 3 — Kết Nối / Connection
-
-## Theme
-
 ```text
-KẾT NỐI
-CONNECTION
+pieces approach one another
+-> line/node relationships appear
+-> pieces form one temporary cluster
+-> giant KẾT NỐI crosses behind or through the cluster
+-> cluster compresses
+-> cluster releases into Scene 4
 ```
 
-## Visual concept
+The existing SVG path-drawing technique may be reused **only here** if it strengthens the connection metaphor.
 
-Separate pieces gradually become one shared composition.
+If used:
 
-Possible elements:
+- make it local to this scene
+- do not keep the existing page-wide route
+- the SVG must support the scene rather than dominate the entire page
 
-- photos
-- sticker cards
-- dots/nodes
-- short lines
-- arrows
-- cat silhouettes
-- FLASH shapes
+## Scene 4 — Bản Sắc / Identity
 
-## Motion
-
-At scene start, items are spatially separated.
-
-During scroll, they:
-
-```text
-enter independently
--> move toward shared center/path
--> overlap/connect
--> briefly lock into one composition
--> explode/release into next transition
-```
-
-This is the best place to reuse the old SVG path technique.
-
-If reused:
-
-- keep the path local to this scene
-- use it as a connection device
-- do not stretch one SVG path through the whole page
-
----
-
-# 9. Scene 4 — Bản Sắc / Identity
-
-## Theme
-
-```text
-BẢN SẮC
-IDENTITY
-```
-
-## Behavior
-
-This is the most graphic scene.
+This is the most graphic and contrast-heavy beat.
 
 Use:
 
-- oversized type
-- strong crop
+- huge cropped text
 - rotated blocks
-- sticker-like shapes
-- palette cards / identity fragments
-- temporary collisions/overlap
+- original sticker shapes
+- identity color tiles
+- strong overlaps
+- quick snapping composition
 
-Suggested state progression:
+Progression:
 
 ```text
-word enters oversized
--> shapes snap around it
+BẢN SẮC enters oversized
+-> tokens snap into individual positions
 -> composition compresses
--> word stretches / rotates
+-> selected tokens rotate/stretch
 -> pieces burst outward
--> one central shape becomes the Memory Cat reveal
+-> one central piece remains
+-> central piece becomes Memory Cat reveal
 ```
 
-If real FLASH brand tokens exist, use them.
+Colors must be centralized through landing CSS variables or token objects.
 
-Otherwise define all landing colors as CSS variables in one place so brand replacement is easy.
+Do not scatter unrelated hard-coded colors through components.
 
-Do not scatter arbitrary hard-coded colors across scene files.
+## Scene 5 — Memory Cat reveal
 
----
+This beat should visually explain the event mechanism without becoming a tutorial screen.
 
-# 10. Scene 5 — Memory Cat Reveal
-
-## Goal
-
-Explain the actual event interaction visually.
-
-Primary copy concept:
+Main object:
 
 ```text
-LEAVE YOUR MARK
-BRING YOUR MEMORY TO LIFE
+large Memory Cat silhouette / original cat asset
 ```
 
-## Motion
+Supporting motion:
 
-A large cat silhouette becomes the central object.
+- sample cat tokens pop in
+- use Float/Hop vocabulary from `/wall`
+- small stickers orbit or cross
+- cat uses squash/stretch on entry
 
-Around it, show simplified examples of attendee-created cats or memory stickers.
-
-Use the same motion vocabulary already present on `/wall`:
+Message:
 
 ```text
-pop
-float
-hop
-squash/stretch
+MAKE A MEMORY
+BRING IT TO LIFE
 ```
 
-This visually connects the landing to the live product.
+Primary CTA must become clickable before all decorative motion completes.
 
-Primary CTA must become visible early enough that the user never has to finish every animation before using it.
+Do not gate navigation behind a timeline.
 
-CTA:
+## Scene 6 — Stable final CTA
 
-```text
-CREATE YOUR MEMORY
-```
-
-Route:
-
-```text
-/create
-```
-
----
-
-# 11. Scene 6 — Final CTA
-
-After several high-energy scenes, the outro should be cleaner and more stable.
-
-Suggested message:
-
-```text
-MAKE A MEMORY.
-WATCH IT COME ALIVE.
-```
+After high-energy motion, finish with a readable end state.
 
 Actions:
 
@@ -564,15 +663,15 @@ CREATE YOUR MEMORY -> /create
 VIEW LIVE WALL     -> /wall
 ```
 
-Do not end with a chaotic composition that makes buttons difficult to find or tap.
+The final CTA can still have hover motion, but it should not be visually chaotic.
 
 ---
 
-# 12. Required implementation architecture
+# 8. Required React architecture
 
-The current `LandingPage.tsx` is too monolithic for the target motion system.
+The current `LandingPage.tsx` should become a lightweight orchestrator.
 
-Refactor toward:
+Refactor approximately toward:
 
 ```text
 client/src/
@@ -582,13 +681,18 @@ client/src/
 ├── components/
 │   └── landing/
 │       ├── LandingHeader.tsx
-│       ├── SceneShell.tsx
 │       ├── KineticText.tsx
-│       ├── FloatingAsset.tsx
+│       ├── MotionAsset.tsx
 │       ├── ParallaxLayer.tsx
+│       ├── SceneFrame.tsx
+│       ├── visual/
+│       │   ├── AnniversaryToken.tsx
+│       │   ├── MemoryFragment.tsx
+│       │   ├── FlashShape.tsx
+│       │   └── CatToken.tsx
 │       └── scenes/
 │           ├── HeroScene.tsx
-│           ├── TenYearsScene.tsx
+│           ├── FlashbackScene.tsx
 │           ├── ConnectionScene.tsx
 │           ├── IdentityScene.tsx
 │           ├── MemoryCatScene.tsx
@@ -598,81 +702,160 @@ client/src/
 │   └── landing/
 │       ├── motionPresets.ts
 │       ├── heroTimeline.ts
-│       ├── tenYearsTimeline.ts
+│       ├── flashbackTimeline.ts
 │       ├── connectionTimeline.ts
 │       ├── identityTimeline.ts
 │       └── memoryCatTimeline.ts
 │
 ├── hooks/
-│   ├── useLenis.ts
-│   └── useReducedMotion.ts
+│   ├── useReducedMotion.ts
+│   └── useLandingSmoothScroll.ts
 │
 └── styles/
     └── landing.css
 ```
 
-Small adjustments are allowed to match repository conventions.
+Small changes are allowed to match repository conventions.
 
-Important requirements:
+Rules:
 
-- one scene = one understandable component
-- one major scene = one controlled GSAP timeline
-- cleanup must be local and reliable
-- avoid one global mega-timeline controlling the entire page
-- avoid dozens of independent ScrollTriggers that are impossible to reason about
-
----
-
-# 13. Remove / replace current landing patterns
-
-The current implementation should be treated as a prototype to refactor, not something to preserve visually.
-
-Specifically:
-
-## Replace
-
-- the giant hard-coded `routePath` as the page-wide animation spine
-- generic `[data-landing-reveal]` fade-up as the primary animation system
-- repeated static editorial section composition
-- CSS-built placeholder characters as the main visual identity
-
-## Keep only when useful
-
-- React route structure
-- GSAP + ScrollTrigger setup patterns
-- reduced-motion handling
-- SVG path-drawing technique as a local scene effect
-- existing FLASH/Memory Cat product links
-
-Do not preserve old DOM merely to minimize diff size if it blocks the new choreography.
+- one scene component should be understandable in isolation
+- one primary ScrollTrigger timeline per scene
+- keep temporary hover/entrance tweens local to their component
+- use refs and `gsap.context()`
+- reliably clean everything on unmount
+- do not create one giant global timeline for the whole site
+- do not create dozens of unrelated ScrollTriggers for every small object
 
 ---
 
-# 14. Smooth scrolling
+# 9. Styling architecture
+
+Move landing-specific styles out of the global product styling where practical.
+
+Target:
+
+```text
+client/src/styles.css
+  -> shared/create/wall styles
+
+client/src/styles/landing.css
+  -> landing-only styles
+```
+
+Import `landing.css` only from the landing module or main stylesheet according to the existing convention.
+
+Landing style rules:
+
+- full-bleed compositions
+- allow intentional clipping
+- use responsive `clamp()` for giant type
+- keep CTA hit areas touch-friendly
+- use CSS variables for palette
+- prefer transform animation
+- avoid heavy box-shadow/filter animation
+
+Do not reproduce a normal card-grid marketing layout.
+
+---
+
+# 10. Remove from the current landing
+
+Remove or demote these patterns:
+
+## Remove as primary architecture
+
+```text
+const routePath = "...huge global SVG path..."
+[data-landing-reveal] on most content
+generic repeated fade + y reveals
+repeated editorial two-column sections
+CSS-built human characters as main visual language
+page-wide SVG scroll layer
+```
+
+## Keep only if useful
+
+```text
+React Router links
+GSAP setup
+ScrollTrigger lifecycle patterns
+reduced-motion handling
+SVG stroke-draw technique for Connection scene
+Memory Cat links
+```
+
+Do not keep old elements simply because they already exist.
+
+---
+
+# 11. GSAP / ScrollTrigger implementation rules
+
+GSAP ScrollTrigger supports `pin` and `scrub`; use them intentionally.
+
+Conceptual scene pattern:
+
+```ts
+useLayoutEffect(() => {
+  const root = rootRef.current;
+  if (!root) return;
+
+  const ctx = gsap.context(() => {
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: root,
+        start: "top top",
+        end: "+=2200",
+        pin: true,
+        scrub: 0.8,
+        invalidateOnRefresh: true,
+      },
+    });
+
+    // scene choreography here
+  }, root);
+
+  return () => ctx.revert();
+}, []);
+```
+
+Important:
+
+- tune `end` per scene
+- do not blindly use `+=2200` everywhere
+- animate children inside a pinned scene rather than moving the pinned wrapper itself
+- avoid nested pinned sections
+- use labels for complex choreography
+- use `ScrollTrigger.refresh()` after critical assets/fonts load
+- use `will-change` only on elements actively benefiting from it
+- do not use React state for per-frame animation values
+
+---
+
+# 12. Smooth scroll / Lenis
 
 The current client does not include Lenis.
 
-Add:
+Do **not** install Lenis as the first step.
+
+Implementation order:
+
+```text
+native scroll + ScrollTrigger works correctly
+-> pin/scrub choreography is approved
+-> then evaluate Lenis
+```
+
+If smooth scrolling improves the page, add:
 
 ```text
 lenis
 ```
 
-only for the landing experience.
-
-Recommended integration:
+Official integration pattern:
 
 ```ts
-import Lenis from "lenis";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
-
-const lenis = new Lenis({
-  smoothWheel: true,
-  lerp: 0.08,
-});
+const lenis = new Lenis();
 
 lenis.on("scroll", ScrollTrigger.update);
 
@@ -683,80 +866,43 @@ gsap.ticker.add((time) => {
 gsap.ticker.lagSmoothing(0);
 ```
 
-Implementation must be lifecycle-safe in React.
+Use lifecycle-safe React integration.
 
-On unmount:
+Cleanup must:
 
 - destroy Lenis
-- remove GSAP ticker callback
-- revert GSAP contexts
-- remove scene-scoped ScrollTriggers
+- remove the GSAP ticker callback
+- revert relevant GSAP contexts
 
 Do not create multiple Lenis instances in React Strict Mode.
 
-If touch/mobile behavior becomes worse with Lenis, use native scrolling at the affected breakpoint.
+If touch/mobile feels worse with Lenis, use native scroll there.
 
-Lenis is an enhancement, not a reason to break touch scrolling.
-
----
-
-# 15. GSAP / ScrollTrigger rules
-
-Use one main timeline per scene.
-
-Conceptual pattern:
-
-```ts
-useLayoutEffect(() => {
-  const ctx = gsap.context(() => {
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: rootRef.current,
-        start: "top top",
-        end: "+=2200",
-        pin: true,
-        scrub: 0.8,
-        invalidateOnRefresh: true,
-      },
-    });
-
-    // scene states
-  }, rootRef);
-
-  return () => ctx.revert();
-}, []);
-```
-
-Rules:
-
-- tune scroll distance per scene
-- do not give every scene the same `end`
-- avoid nested pinned scenes
-- use `will-change: transform` sparingly on actively animated elements
-- animate transforms and opacity whenever possible
-- do not use React state for frame-by-frame values
-- call `ScrollTrigger.refresh()` after critical fonts/assets are ready
+Lenis is polish, not a dependency for correctness.
 
 ---
 
-# 16. Motion presets
+# 13. Motion presets
 
-Centralize reusable values.
+Centralize shared motion intent.
 
 Example:
 
 ```ts
 export const LANDING_MOTION = {
-  scrub: 0.8,
+  scrub: {
+    soft: 0.55,
+    cinematic: 0.85,
+  },
   impact: {
-    enterScale: 0.55,
-    overshoot: 1.08,
-    settle: 1,
+    enterScale: 0.62,
+    overshootScale: 1.09,
+    recoilScale: 0.975,
   },
   parallax: {
-    back: 0.12,
+    back: 0.14,
     mid: 0.28,
-    front: 0.5,
+    front: 0.56,
   },
   pointerTilt: {
     maxRotation: 5,
@@ -764,70 +910,68 @@ export const LANDING_MOTION = {
 };
 ```
 
-The actual values should be tuned visually.
+These are starting values, not immutable design constants.
 
-The point is consistency, not these exact numbers.
+Tune against the visual target.
 
-Do not duplicate arbitrary easing/distance values across every component.
+Avoid unexplained magic numbers spread through every scene.
 
 ---
 
-# 17. Asset strategy
+# 14. Hover and pointer interaction
 
-V1 should use:
+Desktop may include small pointer responses.
+
+Examples:
+
+- CTA compress/overshoot
+- one or two nearby tokens tilt toward pointer
+- image fragment shifts a few pixels in depth
+- nav item gets playful translate/rotate response
+
+Use efficient transform updates such as `gsap.quickTo()`.
+
+Do not make the entire page chase the cursor.
+
+Pointer interaction is secondary to scroll choreography.
+
+---
+
+# 15. Asset strategy
+
+For V1 prefer:
 
 ```text
 DOM
 CSS
 SVG
-optimized WebP/AVIF/PNG assets
+WebP/AVIF/PNG assets
+small GIF/video only when justified
 ```
 
-Do not add Three.js or React Three Fiber in the first implementation pass.
+Do not add Three.js / React Three Fiber in V1.
 
-Only consider WebGL after the DOM/SVG version is visually strong and performance is stable.
+The reference's energy can be reproduced without WebGL.
 
-Use original FLASH/event assets where available.
+Use WebGL only later if a specific approved visual cannot be achieved credibly with the existing stack.
 
-If real assets are missing:
+Original placeholder assets should be easy to replace.
 
-- create obvious local placeholders
-- keep replacement paths centralized
-- do not pull random copyrighted web images into production
-
-Do not reproduce SuperPlay artwork.
-
----
-
-# 18. Landing CSS isolation
-
-The current `styles.css` also styles `/create` and `/wall`.
-
-Move new landing-specific rules to:
+Recommended folders:
 
 ```text
-client/src/styles/landing.css
+client/src/assets/landing/photos/
+client/src/assets/landing/stickers/
+client/src/assets/landing/shapes/
 ```
 
-or an equivalent isolated landing stylesheet.
-
-Do not accidentally alter:
-
-- `.create-page`
-- drawing controls
-- Konva canvas behavior
-- `.live-wall`
-- cat sprite behavior
-
-Keep global typography resets minimal.
-
-Landing styles should be scoped under a landing root when practical.
+Do not hotlink SuperPlay assets.
 
 ---
 
-# 19. Responsive strategy
+# 16. Responsive strategy
 
-Desktop is the highest-fidelity motion target.
+Desktop is the primary motion-fidelity target.
 
 Test at minimum:
 
@@ -839,24 +983,49 @@ Test at minimum:
 390 x 844
 ```
 
-On tablet/mobile:
+## Desktop
 
-- shorten pin distances
-- reduce travel distance
-- reduce decorative object count
-- reduce excessive text clipping
-- disable pointer parallax
-- simplify expensive foreground layers
-- use native scroll if smooth-scroll causes touch problems
-- preserve CTA visibility
+Allow:
 
-Do not simply scale the desktop layout down.
+- giant clipped typography
+- pinned sequences
+- deeper travel distances
+- foreground crossings
+- optional pointer parallax
 
-Mobile should feel like a designed alternate choreography.
+## Tablet
+
+Reduce:
+
+- object count
+- travel distances
+- pin duration where necessary
+
+Preserve:
+
+- narrative order
+- primary kinetic text
+- strong transitions
+
+## Mobile
+
+Prioritize usability over desktop choreography fidelity.
+
+May simplify:
+
+- pointer effects
+- long horizontal movement
+- expensive parallax
+- number of floating assets
+- pin duration
+
+Do not create horizontal page overflow.
+
+CTA must remain easily tappable.
 
 ---
 
-# 20. Reduced motion
+# 17. Reduced motion
 
 Respect:
 
@@ -866,287 +1035,262 @@ prefers-reduced-motion: reduce
 
 Reduced-motion mode must:
 
-- remove pin-heavy choreography when necessary
-- show all content without requiring animation progress
-- avoid large flying objects
-- avoid repeated elastic motion
-- keep navigation and CTA fully usable
+- preserve all text and CTAs
+- avoid long pin/scrub experiences
+- remove large zipping/crossing movements
+- keep decorative objects mostly static
+- use simple short opacity/scale transitions if needed
 
-Animation may enhance comprehension but must not gate it.
+Motion must never gate navigation or information.
 
 ---
 
-# 21. Performance requirements
+# 18. Performance constraints
 
-Target smooth interaction on a normal event laptop and modern phone.
+Target a smooth event-laptop experience.
 
 Prefer:
 
-- transforms
-- opacity
-- optimized images
-- a few strong parallax layers
-- scene-local timelines
+```text
+transform
+opacity
+optimized image assets
+scene-local animation
+limited active visual layers
+```
 
 Avoid:
 
-- large uncompressed PNGs
-- continuous React rerenders during scroll
-- dozens of mousemove-driven elements
-- layout-reading loops inside scroll handlers
-- too many simultaneous blur/filter animations
-- WebGL before it is justified
-
-Use browser performance tools if animation stutters.
-
-First simplify motion density before adding more libraries.
-
----
-
-# 22. Implementation sequence for Codex
-
-Codex must implement in this order.
-
-## Phase A — Audit and protect existing product
-
-Before changing landing code:
-
-1. run the project
-2. confirm `/create` works
-3. confirm `/wall` works
-4. confirm routing works
-5. run type-check/build
-
-Do not redesign `/create` or `/wall` as part of this task.
-
-Exit condition:
-
 ```text
-existing product baseline is known and working
+layout properties animated every frame
+large blur/filter animations
+continuous React setState during scroll
+hundreds of particles
+multiple videos autoplaying together
+unbounded requestAnimationFrame loops
 ```
 
----
+Only active scenes should do meaningful motion work.
 
-## Phase B — Landing skeleton refactor
+For image-heavy scenes:
 
-Create scene components and move landing-only CSS out of the shared stylesheet.
-
-No complex animation yet.
-
-Exit condition:
-
-- 6 scenes render in correct order
-- primary and secondary CTAs work
-- `/create` and `/wall` remain unchanged
+- size source images close to display needs
+- use WebP/AVIF where possible
+- preload only genuinely critical hero assets
+- lazy-load later imagery when practical
 
 ---
 
-## Phase C — Hero only
+# 19. Fidelity gates
 
-Build the Hero scene to full motion quality before animating the rest of the page.
+Do not judge completion only by whether the code runs.
 
-Required hero features:
+## Gate A — Hero
 
-- oversized FLASH 10 typography
-- impact entrance
-- squash/stretch or overshoot
-- at least 3 choreographed decorative objects
-- first scroll immediately transforms the hero
-- hero -> Scene 2 takeover transition
+At 1440×900, the first viewport must immediately read as an interactive campaign experience.
 
-Exit condition:
+Pass only if:
 
-The hero alone already feels substantially closer to the SuperPlay motion language than the current landing.
+- giant typography dominates composition
+- at least 3 depth layers are visually apparent
+- several original visual tokens are choreographed around the type
+- entrance has physical overshoot/squash character
+- first scroll transforms the composition rather than merely scrolling it away
 
-Do not proceed with generic fades for the remaining sections just to make the page look complete.
+If Hero still resembles the current editorial landing, stop and improve it before proceeding.
 
----
+## Gate B — Continuous world
 
-## Phase D — Scene timelines
+After implementing the first 3 scenes:
 
-Implement in order:
+- boundaries should not feel like normal stacked website sections
+- at least one object handoff should connect scenes
+- at least two transition patterns should already be visible
+
+## Gate C — Motion variety
+
+Whole landing must include at least 3 clearly different transition patterns from:
 
 ```text
-TenYearsScene
-ConnectionScene
-IdentityScene
-MemoryCatScene
-FinalCtaScene
+scale takeover
+directional sweep
+typography replacement
+color takeover
+object handoff
 ```
 
-Each scene gets:
+## Gate D — SuperPlay motion principles
 
-- clear start state
-- clear end state
-- one main timeline
-- deliberate transition to next scene
+Without copying brand art, a reviewer should recognize these characteristics:
 
----
+```text
+bouncy titles
+fast traveling visual elements
+bold cropped typography
+playful composition
+controlled visual chaos
+scroll-led exploration
+```
 
-## Phase E — Smooth scroll + polish
-
-After ScrollTrigger choreography works with native scroll:
-
-1. add Lenis
-2. synchronize with ScrollTrigger
-3. test touch behavior
-4. tune scrub values
-5. add limited pointer parallax
-
-Do not debug GSAP and Lenis simultaneously from the start.
+If the primary visible motion is still fade-up, fail the gate.
 
 ---
 
-## Phase F — Responsive + reduced motion
+# 20. Implementation order for Codex
 
-Implement mobile choreography and reduced-motion fallback.
+Follow this order strictly.
 
-Do not leave this until after the desktop code becomes impossible to simplify.
+## Phase 0 — Audit
 
----
+Before editing:
 
-## Phase G — Final verification
+1. read `INSTRUCTIONS.md`
+2. read this file
+3. inspect `LandingPage.tsx`
+4. inspect landing CSS in `styles.css`
+5. inspect `App.tsx`
+6. inspect `/create` and `/wall` imports/styles enough to avoid regressions
+7. inspect available local assets
 
-Run:
+Do not rewrite backend code for this task.
 
-```bash
+## Phase 1 — Refactor skeleton
+
+- extract landing-specific CSS
+- create scene/components structure
+- remove dependence on the page-wide SVG route
+- keep routes unchanged
+
+Exit condition:
+
+- static page renders
+- `/create` and `/wall` still work
+- no animation complexity yet
+
+## Phase 2 — Build Hero only
+
+Implement full Hero composition and entrance.
+
+Then implement first scroll-controlled Hero transformation.
+
+Exit condition:
+
+- Hero passes Fidelity Gate A
+- no console errors
+- scrolling upward reverses cleanly
+
+**Do not build every scene before the Hero is convincing.**
+
+## Phase 3 — Flashback
+
+- giant `10`
+- memory fragments
+- pin/scrub timeline
+- object handoff to Connection
+
+Exit condition:
+
+- first two scenes feel like one continuous sequence
+
+## Phase 4 — Connection
+
+- dispersed objects
+- gathering cluster
+- optional local SVG connection path
+- transition into Identity
+
+Exit condition:
+
+- Gate B passes
+
+## Phase 5 — Identity
+
+- kinetic `BẢN SẮC`
+- graphic tokens
+- strong composition change
+- handoff into Memory Cat
+
+## Phase 6 — Memory Cat + CTA
+
+- reveal cat
+- connect visual vocabulary to `/wall`
+- primary CTA to `/create`
+- secondary `/wall`
+
+## Phase 7 — Smooth-scroll polish
+
+Only now evaluate/install Lenis.
+
+Keep it only if it measurably improves the experience.
+
+## Phase 8 — Responsive + reduced motion
+
+Tune desktop, tablet, mobile, and reduced-motion behavior.
+
+## Phase 9 — Validation
+
+Run from repository root:
+
+```text
 npm run check
 npm run build
 ```
 
-Also manually verify:
-
-```text
-/
-/create
-/wall
-```
-
-No console errors.
-
-No ScrollTrigger debug markers.
-
-No broken links.
+Fix all new errors before handoff.
 
 ---
 
-# 23. Visual QA checkpoints
+# 21. Definition of Done
 
-Do not judge the animation only at page load.
+Landing redesign is done only when all apply:
 
-Capture or inspect approximately:
-
-```text
-Hero      0%, 50%, 100%
-TenYears  0%, 50%, 100%
-Connection 0%, 50%, 100%
-Identity  0%, 50%, 100%
-MemoryCat 0%, 50%, 100%
-Outro
-```
-
-At each state inspect:
-
-- composition balance
-- readability
-- overlap
-- object depth
-- whether movement feels scroll-linked
-- whether the next transition is already visually prepared
-
-If a section looks like a normal static card when paused mid-scroll, strengthen staging.
-
----
-
-# 24. Acceptance criteria
-
-The landing redesign is complete only when all of the following are true.
-
-## Architecture
-
-- [ ] `/` is split into scene components
-- [ ] landing motion is not one giant page-wide timeline
-- [ ] landing CSS is isolated from create/wall styling
-- [ ] scene animations clean up correctly on unmount
-
-## Motion
-
-- [ ] at least 2 important scenes use pin + scrub
-- [ ] first scroll transforms the hero instead of merely scrolling it away
-- [ ] oversized typography participates in motion
-- [ ] at least 3 transition patterns are used across the page
-- [ ] foreground/midground/background depth is visible
-- [ ] at least one focal element uses squash/stretch or overshoot
-- [ ] scroll upward rewinds animations naturally
-- [ ] generic fade-up is not the dominant animation language
-
-## Product integration
-
-- [ ] `/create` still works
-- [ ] `/wall` still works
-- [ ] primary CTA goes to `/create`
-- [ ] secondary CTA goes to `/wall`
-- [ ] Memory Cat reveal visually connects landing to the existing product
-
-## Responsive/accessibility
-
-- [ ] mobile layout is intentionally adapted
-- [ ] reduced-motion mode is usable
-- [ ] CTAs remain keyboard/touch accessible
-- [ ] text remains readable at supported breakpoints
-
-## Quality
-
-- [ ] no console errors
-- [ ] no duplicate ScrollTrigger/Lenis instances
-- [ ] no debug markers
+- [ ] `/` no longer resembles the old editorial/SVG-path prototype
+- [ ] page feels like one animated playground rather than isolated marketing cards
+- [ ] Hero passes Fidelity Gate A
+- [ ] scroll controls meaningful scene transformations
+- [ ] important scenes use pin/scrub where appropriate
+- [ ] giant typography acts as a moving visual object
+- [ ] bouncy/overshoot motion is clearly present but controlled
+- [ ] multiple original object families move around the typography
+- [ ] at least two object handoffs connect scene boundaries
+- [ ] at least three distinct scene transition patterns are present
+- [ ] generic fade-up is not the dominant animation
+- [ ] old global `routePath` is removed from the production landing
+- [ ] any SVG path drawing is local and purposeful
+- [ ] no SuperPlay proprietary artwork/copy is copied
+- [ ] no hotlinked SuperPlay assets are used
+- [ ] `/create` behavior remains intact
+- [ ] `/wall` behavior remains intact
+- [ ] Socket.IO/backend behavior remains intact
+- [ ] desktop layout is visually strong at 1440×900 and 1366×768
+- [ ] tablet/mobile remain usable
+- [ ] reduced-motion mode works
+- [ ] no obvious horizontal overflow
+- [ ] no console errors caused by the landing
 - [ ] `npm run check` passes
 - [ ] `npm run build` passes
 
 ---
 
-# 25. Non-goals
+# 22. Codex handoff report
 
-Do not use this landing redesign as a reason to add:
-
-- authentication
-- database
-- cloud deployment
-- moderation
-- AI
-- paper scanning
-- new backend APIs
-- Three.js/WebGL V1
-- new Memory Cat animation types
-
-This task is a **front-end landing experience redesign only**.
-
----
-
-# 26. Codex execution prompt
-
-When Codex starts this task, treat the following as the working directive:
+When implementation is complete, Codex must report:
 
 ```text
-Read INSTRUCTIONS.md first to understand and protect the existing Memory Cat product.
-Then read INSTRUCTIONS_SUPERPLAY_LANDING.md and treat it as authoritative for route `/`.
-
-Audit the current LandingPage.tsx and landing-related CSS before editing.
-Do not redesign /create or /wall.
-
-Refactor the current page-wide SVG/fade-up landing into a scene-based GSAP ScrollTrigger experience inspired by the motion grammar of https://www.superplay.co/:
-- pinned cinematic scenes
-- kinetic oversized typography
-- scroll-scrub timelines
-- parallax depth
-- choreographed flying objects
-- squash/stretch and overshoot
-- strong scene takeovers
-
-Implement the Hero first and make its motion quality convincing before expanding the same system to the remaining scenes.
-Keep the old SVG route only if it is useful as a local connection-scene effect.
-Add Lenis only after native-scroll ScrollTrigger choreography is stable.
-
-Protect all existing create/wall/backend behavior.
-Finish by running npm run check and npm run build and report what changed, what remains placeholder, and any performance compromises.
+1. Files created
+2. Files modified
+3. Old landing patterns removed
+4. Scene architecture implemented
+5. Motion system implemented
+6. Where object handoffs occur
+7. Where pin/scrub is used
+8. Whether Lenis was added and why
+9. Mobile/reduced-motion changes
+10. npm run check result
+11. npm run build result
+12. Known visual limitations / assets still needing replacement
 ```
+
+Do not report "SuperPlay cloned" merely because GSAP animations exist.
+
+The target is achieved only when the **motion language and continuous animated-playground feeling** are visibly present while the page remains clearly FLASH 10.
