@@ -2,6 +2,7 @@ import sharp from "sharp";
 import type { RawRgbaImage } from "./imageTypes.js";
 import { normalizePageFromMarkers } from "./pageAlignment.js";
 import { detectRegistrationMarkers } from "./registrationMarkers.js";
+import { composeTemplateArtwork, type Rgb } from "./templateCompositing.js";
 import { getTemplatePreprocessProfile, type TemplatePreprocessProfile } from "./templateProfiles.js";
 
 const maxInputPixels = 40_000_000;
@@ -56,24 +57,23 @@ async function preprocessTemplateScan(inputPath: string, profile: TemplatePrepro
   assertSameCanvas(scan, guideStrokeMask, "guide stroke mask");
 
   const paperColor = estimateTemplatePaperColor(scan, allowedRegionMask, guideStrokeMask);
-  const artwork = extractTemplateArtwork(
+  const composition = composeTemplateArtwork({
     scan,
     blankTemplate,
     allowedRegionMask,
     guideStrokeMask,
     paperColor,
     profile,
-  );
-  const visiblePixels = countVisiblePixels(artwork.data);
-  if (visiblePixels < profile.minimumVisiblePixels) {
-    throw new ScanPreprocessError("scan does not contain guest artwork inside the template region");
+  });
+  if (composition.guestChangedPixelCount < profile.output.minimumGuestArtworkPixels) {
+    throw new ScanPreprocessError("scan does not contain meaningful guest artwork");
   }
 
   const cropped = cropToVisibleArtwork(
-    artwork.data,
-    artwork.width,
-    artwork.height,
-    profile.cropPaddingRatio,
+    composition.image.data,
+    composition.image.width,
+    composition.image.height,
+    profile.output.cropPaddingRatio,
   );
   return sharp(cropped.data, {
     raw: { width: cropped.width, height: cropped.height, channels: 4 },
@@ -157,60 +157,6 @@ function estimateTemplatePaperColor(
   }
   return { red: median(red), green: median(green), blue: median(blue) };
 }
-
-function extractTemplateArtwork(
-  scan: RawRgbaImage,
-  blankTemplate: RawRgbaImage,
-  allowedRegionMask: RawRgbaImage,
-  guideStrokeMask: RawRgbaImage,
-  paperColor: Rgb,
-  profile: TemplatePreprocessProfile,
-): RawRgbaImage {
-  const artwork = Buffer.alloc(scan.data.length);
-  for (let y = 0; y < scan.height; y += 1) {
-    for (let x = 0; x < scan.width; x += 1) {
-      const targetOffset = (y * scan.width + x) * 4;
-      if (allowedRegionMask.data[targetOffset]! <= 128) continue;
-      const corrected = correctPaperColor(scan.data, targetOffset, paperColor);
-      const difference = Math.hypot(
-        corrected.red - blankTemplate.data[targetOffset]!,
-        corrected.green - blankTemplate.data[targetOffset + 1]!,
-        corrected.blue - blankTemplate.data[targetOffset + 2]!,
-      );
-      const threshold = guideStrokeMask.data[targetOffset]! > 128
-        ? profile.guideDifferenceThreshold
-        : profile.differenceThreshold;
-      if (difference <= threshold || scan.data[targetOffset + 3]! < 128) continue;
-      artwork[targetOffset] = scan.data[targetOffset]!;
-      artwork[targetOffset + 1] = scan.data[targetOffset + 1]!;
-      artwork[targetOffset + 2] = scan.data[targetOffset + 2]!;
-      artwork[targetOffset + 3] = 255;
-    }
-  }
-  return { data: artwork, width: scan.width, height: scan.height };
-}
-
-function correctPaperColor(pixels: Buffer, offset: number, paperColor: Rgb): Rgb {
-  return {
-    red: clampColor(pixels[offset]! + 255 - paperColor.red),
-    green: clampColor(pixels[offset + 1]! + 255 - paperColor.green),
-    blue: clampColor(pixels[offset + 2]! + 255 - paperColor.blue),
-  };
-}
-
-function clampColor(value: number): number {
-  return Math.max(0, Math.min(255, value));
-}
-
-function countVisiblePixels(pixels: Buffer): number {
-  let count = 0;
-  for (let offset = 3; offset < pixels.length; offset += 4) {
-    if (pixels[offset]! > 0) count += 1;
-  }
-  return count;
-}
-
-type Rgb = { red: number; green: number; blue: number };
 
 function estimatePaperColor(pixels: Buffer, width: number, height: number): Rgb | undefined {
   const red: number[] = [];

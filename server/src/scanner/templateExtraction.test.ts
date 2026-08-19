@@ -4,11 +4,19 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import sharp from "sharp";
+import type { RawRgbaImage } from "./imageTypes.js";
 import { preprocessScan, ScanPreprocessError } from "./preprocessScan.js";
+import {
+  composeTemplateArtwork,
+  createArtworkCaptureMask,
+  createGuideCleanupBand,
+} from "./templateCompositing.js";
+import { getTemplatePreprocessProfile, type TemplatePreprocessProfile } from "./templateProfiles.js";
 
 const templateDirectory = path.resolve(import.meta.dirname, "../../../shared/templates/cat-v1");
 const printableTemplatePath = path.join(templateDirectory, "printable-template.svg");
 const allowedRegionMaskPath = path.join(templateDirectory, "allowed-region-mask.svg");
+const guideStrokeMaskPath = path.join(templateDirectory, "guide-stroke-mask.svg");
 const canonicalWidth = 1240;
 const canonicalHeight = 1754;
 
@@ -20,6 +28,14 @@ interface TemplateGeometry {
 }
 
 let templateGeometry: Promise<TemplateGeometry> | undefined;
+let canonicalFixture: Promise<CanonicalFixture> | undefined;
+
+interface CanonicalFixture {
+  blankTemplate: RawRgbaImage;
+  allowedRegionMask: RawRgbaImage;
+  guideStrokeMask: RawRgbaImage;
+  profile: TemplatePreprocessProfile;
+}
 
 test("a4-cat-v1 rejects a blank template with only registration markers and guide", async () => {
   await withTemplateWorkspace(async (workspace) => {
@@ -38,8 +54,10 @@ test("a4-cat-v1 keeps normal inside coloring and removes guide and registration 
     const pixels = await readPixels(await preprocessScan(scanPath, "a4-cat-v1"));
 
     assert.equal(countOpaqueColor(pixels.data, [230, 80, 100]) > 500, true);
+    assert.equal(countOpaqueColor(pixels.data, [255, 255, 255]) > 100_000, true);
     assert.equal(countOpaqueColor(pixels.data, [184, 184, 184]), 0);
     assert.equal(countOpaqueColor(pixels.data, [17, 17, 17]), 0);
+    assert.equal(pixels.data[3], 0);
   });
 });
 
@@ -73,7 +91,7 @@ test("a4-cat-v1 aligns from markers when the guide is completely painted over", 
   });
 });
 
-test("a4-cat-v1 clips a stroke that crosses the allowed shape boundary", async () => {
+test("a4-cat-v1 preserves an overshoot that crosses the allowed shape boundary", async () => {
   await withTemplateWorkspace(async (workspace) => {
     const boundary = await findLeftBoundaryPoint();
     const scanPath = path.join(workspace, "cross-boundary.png");
@@ -89,8 +107,120 @@ test("a4-cat-v1 clips a stroke that crosses the allowed shape boundary", async (
     const pixels = await readPixels(await preprocessScan(scanPath, "a4-cat-v1"));
     const bluePixels = countOpaqueColor(pixels.data, [35, 110, 234]);
 
-    assert.equal(bluePixels > 30, true);
-    assert.equal(bluePixels < rectangleWidth * rectangleHeight, true);
+    assert.equal(bluePixels > 2_000, true);
+  });
+});
+
+test("a4-cat-v1 makes the untouched printed guide outside the character transparent", async () => {
+  const { fixture, composition } = await composeCanonicalTemplate();
+  const guidePixels = findPrintedGuidePixels(fixture, false);
+
+  assert.equal(guidePixels.length > 0, true);
+  for (const pixelIndex of guidePixels) {
+    assert.equal(composition.image.data[pixelIndex * 4 + 3], 0);
+  }
+});
+
+test("a4-cat-v1 replaces the untouched printed guide inside the character with opaque white", async () => {
+  const { fixture, composition } = await composeCanonicalTemplate();
+  const guidePixels = findPrintedGuidePixels(fixture, true);
+
+  assert.equal(guidePixels.length > 0, true);
+  for (const pixelIndex of guidePixels) {
+    assertPixel(composition.image, pixelIndex, [255, 255, 255], 255);
+  }
+});
+
+test("a4-cat-v1 preserves red paint over the guide outside the character", async () => {
+  const fixture = await getCanonicalFixture();
+  const point = findPrintedGuidePoint(fixture, false);
+  const { composition } = await composeCanonicalTemplate((scan) => {
+    paintSquare(scan, point.x, point.y, 3, [242, 27, 43]);
+  });
+
+  assertPixel(composition.image, point.pixelIndex, [242, 27, 43], 255);
+});
+
+test("a4-cat-v1 preserves black paint over the guide outside the character", async () => {
+  const fixture = await getCanonicalFixture();
+  const point = findPrintedGuidePoint(fixture, false);
+  const { composition } = await composeCanonicalTemplate((scan) => {
+    paintSquare(scan, point.x, point.y, 3, [0, 0, 0]);
+  });
+
+  assertPixel(composition.image, point.pixelIndex, [0, 0, 0], 255);
+});
+
+test("a4-cat-v1 preserves a guest-added gray whisker outside the character", async () => {
+  const fixture = await getCanonicalFixture();
+  const point = findOutsideArtworkPoint(fixture);
+  const { composition } = await composeCanonicalTemplate((scan) => {
+    paintSquare(scan, point.x, point.y, 4, [90, 90, 90]);
+  });
+
+  assertPixel(composition.image, point.pixelIndex, [90, 90, 90], 255);
+});
+
+test("a4-cat-v1 removes a gray anti-alias fringe in the widened guide cleanup band", async () => {
+  const fixture = await getCanonicalFixture();
+  const point = findGuideFringePoint(fixture);
+  const { composition } = await composeCanonicalTemplate((scan) => {
+    paintSquare(scan, point.x, point.y, 2, [192, 192, 192]);
+  });
+
+  assert.equal(composition.image.data[point.pixelIndex * 4 + 3], 0);
+});
+
+test("a4-cat-v1 keeps an untouched white character interior opaque", async () => {
+  const fixture = await getCanonicalFixture();
+  const point = findWhiteInteriorPoint(fixture);
+  const { composition } = await composeCanonicalTemplate();
+
+  assertPixel(composition.image, point.pixelIndex, [255, 255, 255], 255);
+});
+
+test("a4-cat-v1 excludes title, footer, and registration markers from the sprite", async () => {
+  const { fixture, composition } = await composeCanonicalTemplate();
+  const captureMask = createArtworkCaptureMask(
+    fixture.allowedRegionMask,
+    fixture.profile.output.outsideCaptureRadiusPx,
+  );
+  let templatePagePixelCount = 0;
+
+  for (let pixelIndex = 0; pixelIndex < captureMask.length; pixelIndex += 1) {
+    if (captureMask[pixelIndex]) continue;
+    if (!isTemplateInk(fixture.blankTemplate, pixelIndex)) continue;
+    templatePagePixelCount += 1;
+    assert.equal(composition.image.data[pixelIndex * 4 + 3], 0);
+  }
+
+  assert.equal(templatePagePixelCount > 1_000, true);
+});
+
+test("a4-cat-v1 preserves a thick guest stroke crossing the character boundary", async () => {
+  const fixture = await getCanonicalFixture();
+  const boundary = findCrossingBoundaryPoint(fixture);
+  const { composition } = await composeCanonicalTemplate((scan) => {
+    paintSquare(scan, boundary.x, boundary.y, 14, [35, 110, 234]);
+  });
+
+  assertPixel(composition.image, boundary.insidePixelIndex, [35, 110, 234], 255);
+  assertPixel(composition.image, boundary.outsidePixelIndex, [35, 110, 234], 255);
+});
+
+test("a4-cat-v1 preserves gray whiskers outside the cat and expands the crop", async () => {
+  await withTemplateWorkspace(async (workspace) => {
+    const boundary = await findLeftBoundaryPoint();
+    const scanPath = path.join(workspace, "whiskers.png");
+    const whisker = rectangle(boundary.x - 150, boundary.y - 6, 165, 12, "#5A5A5A");
+    await writeFile(scanPath, await addArtwork(await createBlankTemplate(), [whisker, rectangle(600, 760, 25, 25, "#E65064")]));
+
+    const output = await preprocessScan(scanPath, "a4-cat-v1");
+    const pixels = await readPixels(output);
+    const metadata = await sharp(output).metadata();
+
+    assert.equal(countOpaqueColor(pixels.data, [90, 90, 90]) > 1_000, true);
+    assert.equal((metadata.width ?? 0) > 800, true);
   });
 });
 
@@ -102,7 +232,7 @@ test("a4-cat-v1 preserves black guest drawing without including corner markers",
     const pixels = await readPixels(await preprocessScan(scanPath, "a4-cat-v1"));
 
     assert.equal(countOpaqueColor(pixels.data, [0, 0, 0]) > 500, true);
-    assert.equal(countOpaquePixels(pixels.data) < 2_500, true);
+    assert.equal(countOpaqueColor(pixels.data, [0, 0, 0]) < 2_500, true);
   });
 });
 
@@ -284,14 +414,6 @@ async function readPixels(image: Buffer): Promise<{ data: Buffer; width: number;
   return { data, width: info.width, height: info.height };
 }
 
-function countOpaquePixels(pixels: Buffer): number {
-  let count = 0;
-  for (let offset = 3; offset < pixels.length; offset += 4) {
-    if (pixels[offset]! > 0) count += 1;
-  }
-  return count;
-}
-
 function countOpaqueColor(pixels: Buffer, expected: [number, number, number]): number {
   return countOpaqueColorNear(pixels, expected, 0);
 }
@@ -307,4 +429,209 @@ function countOpaqueColorNear(pixels: Buffer, expected: [number, number, number]
     }
   }
   return count;
+}
+
+async function getCanonicalFixture(): Promise<CanonicalFixture> {
+  canonicalFixture ??= (async () => {
+    const profile = await getTemplatePreprocessProfile("a4-cat-v1");
+    const [blankTemplate, allowedRegionMask, guideStrokeMask] = await Promise.all([
+      readTemplatePixels(printableTemplatePath),
+      readTemplatePixels(allowedRegionMaskPath),
+      readTemplatePixels(guideStrokeMaskPath),
+    ]);
+    return { blankTemplate, allowedRegionMask, guideStrokeMask, profile };
+  })();
+  return canonicalFixture;
+}
+
+async function composeCanonicalTemplate(
+  mutateScan?: (scan: RawRgbaImage) => void,
+): Promise<{ fixture: CanonicalFixture; composition: ReturnType<typeof composeTemplateArtwork> }> {
+  const fixture = await getCanonicalFixture();
+  const scan: RawRgbaImage = {
+    data: Buffer.from(fixture.blankTemplate.data),
+    width: fixture.blankTemplate.width,
+    height: fixture.blankTemplate.height,
+  };
+  mutateScan?.(scan);
+  return {
+    fixture,
+    composition: composeTemplateArtwork({
+      scan,
+      blankTemplate: fixture.blankTemplate,
+      allowedRegionMask: fixture.allowedRegionMask,
+      guideStrokeMask: fixture.guideStrokeMask,
+      paperColor: { red: 255, green: 255, blue: 255 },
+      profile: fixture.profile,
+    }),
+  };
+}
+
+function findPrintedGuidePixels(fixture: CanonicalFixture, insideCharacter: boolean): number[] {
+  const matches: number[] = [];
+  for (let pixelIndex = 0; pixelIndex < fixture.guideStrokeMask.width * fixture.guideStrokeMask.height; pixelIndex += 1) {
+    if (isInsideCharacter(fixture, pixelIndex) !== insideCharacter) continue;
+    if (fixture.guideStrokeMask.data[pixelIndex * 4]! <= 128) continue;
+    if (!isTemplateInk(fixture.blankTemplate, pixelIndex)) continue;
+    matches.push(pixelIndex);
+  }
+  return matches;
+}
+
+function findPrintedGuidePoint(fixture: CanonicalFixture, insideCharacter: boolean): TemplatePoint {
+  const pixelIndex = findPrintedGuidePixels(fixture, insideCharacter)[0];
+  if (pixelIndex === undefined) throw new Error("The template does not have a printed guide point in the requested zone");
+  return pointAt(fixture.blankTemplate.width, pixelIndex);
+}
+
+function findGuideFringePoint(fixture: CanonicalFixture): TemplatePoint {
+  const guideCleanupBand = createGuideCleanupBand(
+    fixture.guideStrokeMask,
+    fixture.profile.guide.cleanupBandPaddingPx,
+  );
+  const captureMask = createArtworkCaptureMask(
+    fixture.allowedRegionMask,
+    fixture.profile.output.outsideCaptureRadiusPx,
+  );
+  return findPoint(fixture, (pixelIndex, x, y) => (
+    !isInsideCharacter(fixture, pixelIndex)
+    && captureMask[pixelIndex] === 1
+    && guideCleanupBand[pixelIndex] === 1
+    && fixture.guideStrokeMask.data[pixelIndex * 4]! <= 128
+    && isWhitePixel(fixture.blankTemplate, pixelIndex)
+    && isMaskSquareFilled(guideCleanupBand, fixture.blankTemplate.width, fixture.blankTemplate.height, x, y, 2)
+  ));
+}
+
+function findOutsideArtworkPoint(fixture: CanonicalFixture): TemplatePoint {
+  const guideCleanupBand = createGuideCleanupBand(
+    fixture.guideStrokeMask,
+    fixture.profile.guide.cleanupBandPaddingPx,
+  );
+  const captureMask = createArtworkCaptureMask(
+    fixture.allowedRegionMask,
+    fixture.profile.output.outsideCaptureRadiusPx,
+  );
+  return findPoint(fixture, (pixelIndex, x, y) => (
+    !isInsideCharacter(fixture, pixelIndex)
+    && captureMask[pixelIndex] === 1
+    && guideCleanupBand[pixelIndex] === 0
+    && isWhitePixel(fixture.blankTemplate, pixelIndex)
+    && isMaskSquareFilled(captureMask, fixture.blankTemplate.width, fixture.blankTemplate.height, x, y, 4)
+  ));
+}
+
+function findWhiteInteriorPoint(fixture: CanonicalFixture): TemplatePoint {
+  const guideCleanupBand = createGuideCleanupBand(
+    fixture.guideStrokeMask,
+    fixture.profile.guide.cleanupBandPaddingPx,
+  );
+  return findPoint(fixture, (pixelIndex) => (
+    isInsideCharacter(fixture, pixelIndex)
+    && guideCleanupBand[pixelIndex] === 0
+    && isWhitePixel(fixture.blankTemplate, pixelIndex)
+  ));
+}
+
+function findCrossingBoundaryPoint(fixture: CanonicalFixture): CrossingBoundaryPoint {
+  const { width, height } = fixture.allowedRegionMask;
+  for (let y = 16; y < height - 16; y += 1) {
+    for (let x = 16; x < width - 16; x += 1) {
+      const centerIndex = y * width + x;
+      const insideIndex = y * width + x + 8;
+      const outsideIndex = y * width + x - 8;
+      if (!isInsideCharacter(fixture, centerIndex)) continue;
+      if (!isInsideCharacter(fixture, insideIndex) || isInsideCharacter(fixture, outsideIndex)) continue;
+      return { x, y, insidePixelIndex: insideIndex, outsidePixelIndex: outsideIndex };
+    }
+  }
+  throw new Error("The template does not have a boundary suitable for a crossing-stroke test");
+}
+
+function findPoint(
+  fixture: CanonicalFixture,
+  predicate: (pixelIndex: number, x: number, y: number) => boolean,
+): TemplatePoint {
+  const { width, height } = fixture.blankTemplate;
+  for (let y = 8; y < height - 8; y += 1) {
+    for (let x = 8; x < width - 8; x += 1) {
+      const pixelIndex = y * width + x;
+      if (predicate(pixelIndex, x, y)) return { x, y, pixelIndex };
+    }
+  }
+  throw new Error("The template does not have a pixel matching the requested test condition");
+}
+
+function isInsideCharacter(fixture: CanonicalFixture, pixelIndex: number): boolean {
+  return fixture.allowedRegionMask.data[pixelIndex * 4]! > 128;
+}
+
+function isTemplateInk(image: RawRgbaImage, pixelIndex: number): boolean {
+  const offset = pixelIndex * 4;
+  return image.data[offset]! < 245 || image.data[offset + 1]! < 245 || image.data[offset + 2]! < 245;
+}
+
+function isWhitePixel(image: RawRgbaImage, pixelIndex: number): boolean {
+  const offset = pixelIndex * 4;
+  return image.data[offset]! >= 250 && image.data[offset + 1]! >= 250 && image.data[offset + 2]! >= 250;
+}
+
+function isMaskSquareFilled(
+  mask: Uint8Array,
+  width: number,
+  height: number,
+  x: number,
+  y: number,
+  radius: number,
+): boolean {
+  if (x - radius < 0 || y - radius < 0 || x + radius >= width || y + radius >= height) return false;
+  for (let targetY = y - radius; targetY <= y + radius; targetY += 1) {
+    for (let targetX = x - radius; targetX <= x + radius; targetX += 1) {
+      if (!mask[targetY * width + targetX]) return false;
+    }
+  }
+  return true;
+}
+
+function paintSquare(
+  image: RawRgbaImage,
+  centerX: number,
+  centerY: number,
+  radius: number,
+  color: [number, number, number],
+) {
+  for (let y = Math.max(0, centerY - radius); y <= Math.min(image.height - 1, centerY + radius); y += 1) {
+    for (let x = Math.max(0, centerX - radius); x <= Math.min(image.width - 1, centerX + radius); x += 1) {
+      const offset = (y * image.width + x) * 4;
+      image.data[offset] = color[0];
+      image.data[offset + 1] = color[1];
+      image.data[offset + 2] = color[2];
+      image.data[offset + 3] = 255;
+    }
+  }
+}
+
+function assertPixel(image: RawRgbaImage, pixelIndex: number, color: [number, number, number], alpha: number) {
+  const offset = pixelIndex * 4;
+  assert.deepEqual(
+    [image.data[offset], image.data[offset + 1], image.data[offset + 2], image.data[offset + 3]],
+    [...color, alpha],
+  );
+}
+
+function pointAt(width: number, pixelIndex: number): TemplatePoint {
+  return { x: pixelIndex % width, y: Math.floor(pixelIndex / width), pixelIndex };
+}
+
+interface TemplatePoint {
+  x: number;
+  y: number;
+  pixelIndex: number;
+}
+
+interface CrossingBoundaryPoint {
+  x: number;
+  y: number;
+  insidePixelIndex: number;
+  outsidePixelIndex: number;
 }

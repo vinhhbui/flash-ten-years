@@ -111,5 +111,25 @@
     "source": "scanner",
     "sourceHash": "3f8531a0e33ee39fd3a8a46094df9c867861fab6afbb67f4624ef49a44134a41",
     "originalFileName": "FLASH10_A4_Cat_demo2.png"
+  },
+  {
+    "id": "scan_0c6b6e9d-9c6c-4ec3-b665-64203554020d",
+    "image": "/uploads/scan_0c6b6e9d-9c6c-4ec3-b665-64203554020d.png",
+    "animation": "hop",
+    "frameId": "cat-v1",
+    "createdAt": "2026-08-19T09:47:03.466Z",
+    "source": "scanner",
+    "sourceHash": "4978f20f566854edc3ab41ab928846770bd4d07d8a47313cf38cd77c6ac4fcee",
+    "originalFileName": "FLASH10_A4_Cat_demo2.png"
+  },
+  {
+    "id": "scan_cbe5099b-c066-418f-96b6-277852f69221",
+    "image": "/uploads/scan_cbe5099b-c066-418f-96b6-277852f69221.png",
+    "animation": "hop",
+    "frameId": "cat-v1",
+    "createdAt": "2026-08-19T10:02:46.522Z",
+    "source": "scanner",
+    "sourceHash": "22805bd9eddd0c6ae92db18c03fadce0d399c499affb8a9f2d1bcf78a6a4d44a",
+    "originalFileName": "FLASH10_A4_Cat_demo2.png"
   }
 ]

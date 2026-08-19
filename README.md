@@ -68,7 +68,7 @@ SCAN_FAILED_DIR=C:\FLASH10\scanner\failed
 
 The server loads `.env` automatically. `SCAN_MAX_FILE_MB` defaults to `25`. `SCAN_ANIMATION_MODE` accepts `random`, `float`, `hop`, or a future registered animation ID. For random assignment, `SCAN_ANIMATION_IDS` is the allow-list and defaults to `float,hop`. `SCAN_PREPROCESS_PROFILE` defaults to `a4-cat-v1`; use `generic` only for a non-template legacy scan.
 
-`a4-cat-v1` detects the four black corner markers and uses their projective page transform to normalize each scan to the canonical A4 template. It then compares the normalized scan with the blank template and keeps only changed pixels inside the cat mask. The dashed guide is never used for page alignment, so guests may paint over it. The output PNG is transparent outside the guest's marks, including outside the cat shape. The template SVG and masks are generated from `shared/templates/cat-v1/template.config.json`; after editing that source, run `npm.cmd run generate:template --workspace server`.
+`a4-cat-v1` detects the four black corner markers and uses their projective page transform to normalize each scan to the canonical A4 template. The whole cat body remains opaque white, guest colors inside are preserved, and the dashed guide is removed without creating holes. Guest whiskers, accessories, and marker overshoot up to the template's configured capture radius also remain visible. The A4 paper, title, instructions, and registration markers remain transparent. The template SVG and masks are generated from `shared/templates/cat-v1/template.config.json`; after editing that source, run `npm.cmd run generate:template --workspace server`.
 
 ## Event guest workflow
 

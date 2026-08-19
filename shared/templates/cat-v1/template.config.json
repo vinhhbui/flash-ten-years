@@ -19,7 +19,8 @@
     "opacity": 1,
     "strokeWidth": 4,
     "dashArray": "10 8",
-    "extractionMaskWidth": 14
+    "extractionMaskWidth": 14,
+    "cleanupBandPaddingPx": 8
   },
   "printLayout": {
     "title": "FLASH 10 - COLOR YOUR MEMORY",
@@ -42,6 +43,14 @@
   },
   "differenceThreshold": 40,
   "guideDifferenceThreshold": 150,
-  "cropPaddingRatio": 0.04,
-  "minimumVisiblePixels": 24
+  "output": {
+    "preserveCharacterInterior": true,
+    "interiorPaperMode": "normalized-paper",
+    "preserveOutsideUserStrokes": true,
+    "outsideCaptureRadiusPx": 180,
+    "outsideDifferenceThreshold": 45,
+    "minimumOutsideComponentPixels": 10,
+    "minimumGuestArtworkPixels": 24,
+    "cropPaddingRatio": 0.04
+  }
 }

@@ -14,11 +14,23 @@ interface TemplateConfiguration {
     heightMm: number;
     rasterDensity: number;
   };
+  guide: {
+    extractionMaskWidth: number;
+    cleanupBandPaddingPx: number;
+  };
   registrationMarkers: RegistrationMarkerConfig;
   differenceThreshold: number;
   guideDifferenceThreshold: number;
-  cropPaddingRatio: number;
-  minimumVisiblePixels: number;
+  output: {
+    preserveCharacterInterior: boolean;
+    interiorPaperMode: "normalized-paper";
+    preserveOutsideUserStrokes: boolean;
+    outsideCaptureRadiusPx: number;
+    outsideDifferenceThreshold: number;
+    minimumOutsideComponentPixels: number;
+    minimumGuestArtworkPixels: number;
+    cropPaddingRatio: number;
+  };
 }
 
 export interface TemplatePreprocessProfile extends TemplateConfiguration {
