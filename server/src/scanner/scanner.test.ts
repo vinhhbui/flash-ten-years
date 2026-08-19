@@ -119,6 +119,7 @@ async function withScannerWorkspace(
     animationIds: ["float", "hop"],
     maxFileBytes: 1024,
     defaultFrameId: "cat-v1",
+    preprocessProfile: "generic",
   };
 
   try {

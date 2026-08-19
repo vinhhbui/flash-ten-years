@@ -39,7 +39,7 @@ export async function ingestScan({
       return { status: "duplicate" };
     }
 
-    const image = await retryTransient(() => preprocessScan(inputPath));
+    const image = await retryTransient(() => preprocessScan(inputPath, config.preprocessProfile));
     const submission = await retryTransient(() => submissionService.createSubmission({
       image,
       animation: chooseScannerAnimation(config),

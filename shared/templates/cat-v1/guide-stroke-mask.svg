@@ -1,0 +1,5 @@
+<!-- Generated from template.config.json. Run npm run generate:template after changing the geometry. -->
+<svg width="210mm" height="297mm" viewBox="0 0 1240 1754" xmlns="http://www.w3.org/2000/svg">
+<rect width="1240" height="1754" fill="black"/>
+<path d="M153 445C102 432 88 368 115 304C92 264 100 216 122 185L105 80C103 61 113 59 128 73L185 126C216 107 252 108 281 126L330 73C344 60 354 64 351 84L339 185C365 218 370 265 345 304C355 325 360 348 357 370C373 345 398 342 411 363C429 393 400 435 345 430C330 442 315 447 302 448C260 466 198 466 153 445Z" transform="translate(168 306) scale(2)" fill="none" stroke="white" stroke-width="4" stroke-dasharray="10 8" stroke-linejoin="round"/>
+</svg>

@@ -1,11 +1,18 @@
 import sharp from "sharp";
+import { getTemplatePreprocessProfile, type TemplatePreprocessProfile } from "./templateProfiles.js";
 
 const maxInputPixels = 40_000_000;
 const paperColorDistance = 105;
 
 export class ScanPreprocessError extends Error {}
 
-export async function preprocessScan(inputPath: string): Promise<Buffer> {
+export async function preprocessScan(inputPath: string, preprocessProfile = "a4-cat-v1"): Promise<Buffer> {
+  if (preprocessProfile === "generic") return preprocessGenericScan(inputPath);
+  const templateProfile = await getTemplatePreprocessProfile(preprocessProfile);
+  return preprocessTemplateScan(inputPath, templateProfile);
+}
+
+async function preprocessGenericScan(inputPath: string): Promise<Buffer> {
   const { data, info } = await sharp(inputPath, { failOn: "error", limitInputPixels: maxInputPixels })
     .ensureAlpha()
     .raw()
@@ -32,6 +39,219 @@ export async function preprocessScan(inputPath: string): Promise<Buffer> {
   })
     .png({ compressionLevel: 9 })
     .toBuffer();
+}
+
+interface RawRgbaImage {
+  data: Buffer;
+  width: number;
+  height: number;
+}
+
+interface Alignment {
+  x: number;
+  y: number;
+  score: number;
+}
+
+async function preprocessTemplateScan(inputPath: string, profile: TemplatePreprocessProfile): Promise<Buffer> {
+  const scan = await normalizeScanToTemplate(inputPath, profile);
+  const [blankTemplate, allowedRegionMask, guideStrokeMask] = await Promise.all([
+    readRgbaImage(profile.printableTemplatePath, profile.paper.rasterDensity),
+    readRgbaImage(profile.allowedRegionMaskPath, profile.paper.rasterDensity),
+    readRgbaImage(profile.guideStrokeMaskPath, profile.paper.rasterDensity),
+  ]);
+  assertSameCanvas(scan, blankTemplate, "blank template");
+  assertSameCanvas(scan, allowedRegionMask, "allowed region mask");
+  assertSameCanvas(scan, guideStrokeMask, "guide stroke mask");
+
+  const paperColor = estimateTemplatePaperColor(scan, allowedRegionMask, guideStrokeMask);
+  const alignment = findGuideAlignment(scan, blankTemplate, guideStrokeMask, paperColor, profile);
+  if (alignment.score > profile.maximumGuideAlignmentDifference) {
+    throw new ScanPreprocessError("could not align the scan with the canonical template guide");
+  }
+  const artwork = extractTemplateArtwork(
+    scan,
+    blankTemplate,
+    allowedRegionMask,
+    guideStrokeMask,
+    paperColor,
+    alignment,
+    profile,
+  );
+  const visiblePixels = countVisiblePixels(artwork.data);
+  if (visiblePixels < profile.minimumVisiblePixels) {
+    throw new ScanPreprocessError("scan does not contain guest artwork inside the template region");
+  }
+
+  const cropped = cropToVisibleArtwork(
+    artwork.data,
+    artwork.width,
+    artwork.height,
+    profile.cropPaddingRatio,
+  );
+  return sharp(cropped.data, {
+    raw: { width: cropped.width, height: cropped.height, channels: 4 },
+  })
+    .png({ compressionLevel: 9 })
+    .toBuffer();
+}
+
+async function normalizeScanToTemplate(inputPath: string, profile: TemplatePreprocessProfile): Promise<RawRgbaImage> {
+  const source = sharp(inputPath, { failOn: "error", limitInputPixels: maxInputPixels }).rotate();
+  const metadata = await source.metadata();
+  const portraitSource = metadata.width && metadata.height && metadata.width > metadata.height
+    ? source.rotate(90)
+    : source;
+  const { data, info } = await portraitSource
+    .resize(profile.canvas.width, profile.canvas.height, { fit: "fill" })
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  if (info.channels !== 4) {
+    throw new ScanPreprocessError("scan could not be converted to RGBA pixels");
+  }
+  return { data, width: info.width, height: info.height };
+}
+
+async function readRgbaImage(filePath: string, density?: number): Promise<RawRgbaImage> {
+  const { data, info } = await sharp(filePath, { density, failOn: "error", limitInputPixels: maxInputPixels })
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  if (info.channels !== 4) {
+    throw new ScanPreprocessError(`template asset could not be converted to RGBA pixels: ${filePath}`);
+  }
+  return { data, width: info.width, height: info.height };
+}
+
+function assertSameCanvas(scan: RawRgbaImage, templateAsset: RawRgbaImage, name: string) {
+  if (scan.width !== templateAsset.width || scan.height !== templateAsset.height) {
+    throw new ScanPreprocessError(`${name} dimensions do not match the canonical scan dimensions`);
+  }
+}
+
+function estimateTemplatePaperColor(
+  scan: RawRgbaImage,
+  allowedRegionMask: RawRgbaImage,
+  guideStrokeMask: RawRgbaImage,
+): Rgb {
+  const red: number[] = [];
+  const green: number[] = [];
+  const blue: number[] = [];
+  const sampleStep = Math.max(2, Math.ceil(Math.max(scan.width, scan.height) / 800));
+  for (let y = 0; y < scan.height; y += sampleStep) {
+    for (let x = 0; x < scan.width; x += sampleStep) {
+      const offset = (y * scan.width + x) * 4;
+      if (allowedRegionMask.data[offset]! > 128 || guideStrokeMask.data[offset]! > 128) continue;
+      const pixel = { red: scan.data[offset]!, green: scan.data[offset + 1]!, blue: scan.data[offset + 2]! };
+      if (scan.data[offset + 3]! < 128 || !isLightNeutralPixel(pixel)) continue;
+      red.push(pixel.red);
+      green.push(pixel.green);
+      blue.push(pixel.blue);
+    }
+  }
+  if (!red.length) {
+    throw new ScanPreprocessError("could not identify the blank paper color outside the template region");
+  }
+  return { red: median(red), green: median(green), blue: median(blue) };
+}
+
+function findGuideAlignment(
+  scan: RawRgbaImage,
+  blankTemplate: RawRgbaImage,
+  guideStrokeMask: RawRgbaImage,
+  paperColor: Rgb,
+  profile: TemplatePreprocessProfile,
+): Alignment {
+  let bestAlignment: Alignment = { x: 0, y: 0, score: Number.POSITIVE_INFINITY };
+  let bestScore = Number.POSITIVE_INFINITY;
+  const sampleStep = 3;
+  for (let offsetY = -profile.alignment.radius; offsetY <= profile.alignment.radius; offsetY += profile.alignment.step) {
+    for (let offsetX = -profile.alignment.radius; offsetX <= profile.alignment.radius; offsetX += profile.alignment.step) {
+      let score = 0;
+      let sampleCount = 0;
+      for (let y = 0; y < scan.height; y += sampleStep) {
+        const scanY = y + offsetY;
+        if (scanY < 0 || scanY >= scan.height) continue;
+        for (let x = 0; x < scan.width; x += sampleStep) {
+          const offset = (y * scan.width + x) * 4;
+          if (guideStrokeMask.data[offset]! <= 128) continue;
+          const scanX = x + offsetX;
+          if (scanX < 0 || scanX >= scan.width) continue;
+          const scanOffset = (scanY * scan.width + scanX) * 4;
+          const corrected = correctPaperColor(scan.data, scanOffset, paperColor);
+          const difference = Math.abs(corrected.red - blankTemplate.data[offset]!)
+            + Math.abs(corrected.green - blankTemplate.data[offset + 1]!)
+            + Math.abs(corrected.blue - blankTemplate.data[offset + 2]!);
+          score += Math.min(difference, 120);
+          sampleCount += 1;
+        }
+      }
+      if (sampleCount && score / sampleCount < bestScore) {
+        bestScore = score / sampleCount;
+        bestAlignment = { x: offsetX, y: offsetY, score: bestScore };
+      }
+    }
+  }
+  return bestAlignment;
+}
+
+function extractTemplateArtwork(
+  scan: RawRgbaImage,
+  blankTemplate: RawRgbaImage,
+  allowedRegionMask: RawRgbaImage,
+  guideStrokeMask: RawRgbaImage,
+  paperColor: Rgb,
+  alignment: Alignment,
+  profile: TemplatePreprocessProfile,
+): RawRgbaImage {
+  const artwork = Buffer.alloc(scan.data.length);
+  for (let y = 0; y < scan.height; y += 1) {
+    const scanY = y + alignment.y;
+    if (scanY < 0 || scanY >= scan.height) continue;
+    for (let x = 0; x < scan.width; x += 1) {
+      const targetOffset = (y * scan.width + x) * 4;
+      if (allowedRegionMask.data[targetOffset]! <= 128) continue;
+      const scanX = x + alignment.x;
+      if (scanX < 0 || scanX >= scan.width) continue;
+      const scanOffset = (scanY * scan.width + scanX) * 4;
+      const corrected = correctPaperColor(scan.data, scanOffset, paperColor);
+      const difference = Math.hypot(
+        corrected.red - blankTemplate.data[targetOffset]!,
+        corrected.green - blankTemplate.data[targetOffset + 1]!,
+        corrected.blue - blankTemplate.data[targetOffset + 2]!,
+      );
+      const threshold = guideStrokeMask.data[targetOffset]! > 128
+        ? profile.guideDifferenceThreshold
+        : profile.differenceThreshold;
+      if (difference <= threshold || scan.data[scanOffset + 3]! < 128) continue;
+      artwork[targetOffset] = scan.data[scanOffset]!;
+      artwork[targetOffset + 1] = scan.data[scanOffset + 1]!;
+      artwork[targetOffset + 2] = scan.data[scanOffset + 2]!;
+      artwork[targetOffset + 3] = 255;
+    }
+  }
+  return { data: artwork, width: scan.width, height: scan.height };
+}
+
+function correctPaperColor(pixels: Buffer, offset: number, paperColor: Rgb): Rgb {
+  return {
+    red: clampColor(pixels[offset]! + 255 - paperColor.red),
+    green: clampColor(pixels[offset + 1]! + 255 - paperColor.green),
+    blue: clampColor(pixels[offset + 2]! + 255 - paperColor.blue),
+  };
+}
+
+function clampColor(value: number): number {
+  return Math.max(0, Math.min(255, value));
+}
+
+function countVisiblePixels(pixels: Buffer): number {
+  let count = 0;
+  for (let offset = 3; offset < pixels.length; offset += 4) {
+    if (pixels[offset]! > 0) count += 1;
+  }
+  return count;
 }
 
 type Rgb = { red: number; green: number; blue: number };
@@ -277,7 +497,7 @@ function forEachCardinalNeighbor(
   if (pixelIndex + width < width * height) callback(pixelIndex + width);
 }
 
-function cropToVisibleArtwork(pixels: Buffer, width: number, height: number) {
+function cropToVisibleArtwork(pixels: Buffer, width: number, height: number, paddingRatio = 0.025) {
   let left = width;
   let top = height;
   let right = -1;
@@ -295,7 +515,7 @@ function cropToVisibleArtwork(pixels: Buffer, width: number, height: number) {
     throw new ScanPreprocessError("scan does not contain visible artwork");
   }
 
-  const padding = Math.max(4, Math.ceil(Math.max(right - left + 1, bottom - top + 1) * 0.025));
+  const padding = Math.max(4, Math.ceil(Math.max(right - left + 1, bottom - top + 1) * paddingRatio));
   left = Math.max(0, left - padding);
   top = Math.max(0, top - padding);
   right = Math.min(width - 1, right + padding);

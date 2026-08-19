@@ -4,11 +4,12 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "generate:template": "node scripts/generate-cat-v1-template.mjs",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "build": "tsc -p tsconfig.json",
     "check": "tsc -p tsconfig.json --noEmit",
-    "test": "tsx --test src/scanner/scanner.test.ts"
+    "test": "tsx --test src/scanner/scanner.test.ts src/scanner/templateExtraction.test.ts"
   },
   "dependencies": {
     "chokidar": "^4.0.3",

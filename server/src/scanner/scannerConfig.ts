@@ -9,6 +9,7 @@ export interface ScannerConfig {
   animationIds: string[];
   maxFileBytes: number;
   defaultFrameId: string;
+  preprocessProfile: string;
 }
 
 const projectRoot = path.resolve(import.meta.dirname, "../../..");
@@ -39,6 +40,7 @@ export function loadScannerConfig(environment = process.env): ScannerConfig {
     animationIds,
     maxFileBytes: parseMaxFileBytes(environment.SCAN_MAX_FILE_MB),
     defaultFrameId: normalizeAnimationId(environment.SCAN_DEFAULT_FRAME_ID) ?? "cat-v1",
+    preprocessProfile: normalizeAnimationId(environment.SCAN_PREPROCESS_PROFILE) ?? "a4-cat-v1",
   };
 }
 

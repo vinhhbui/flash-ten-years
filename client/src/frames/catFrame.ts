@@ -6,4 +6,5 @@ export const catFrame: FrameDefinition = {
   aspectRatio: 460 / 520,
   defaultWidth: 190,
   defaultHeight: 215,
+  preprocessProfile: "a4-cat-v1",
 };
