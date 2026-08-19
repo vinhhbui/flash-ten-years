@@ -42,7 +42,7 @@
     ]
   },
   "differenceThreshold": 40,
-  "guideDifferenceThreshold": 150,
+  "guideDifferenceThreshold": 180,
   "output": {
     "preserveCharacterInterior": true,
     "interiorPaperMode": "normalized-paper",
