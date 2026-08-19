@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f7f3e8" />
+    <meta name="description" content="An isolated GSAP ScrollTrigger SVG stroke reference prototype." />
+    <title>Codegrid SVG Scroll Reference</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="site-header" aria-label="Prototype navigation">
+        <a class="brand" href="#top">mindmarket</a>
+        <nav class="nav-links" aria-label="Main navigation">
+          <a href="#network">Services</a>
+          <a href="#people">Methodology</a>
+          <a href="#future">Sectors</a>
+        </nav>
+        <a class="quote-link" href="#end">Get a quote</a>
+      </header>
+
+      <section class="hero section" id="top">
+        <div class="hero-copy content-block" data-reveal>
+          <p class="eyebrow">Independent networks</p>
+          <h1>GLOBAL,<br />FOR REAL.</h1>
+          <p class="body-copy">The right people, in the right places, working together with a little more care.</p>
+          <a class="text-link" href="#network">Meet the network</a>
+        </div>
+        <div class="hero-art visual-field" aria-hidden="true" data-reveal>
+          <div class="orbit orbit--large"></div>
+          <div class="orbit orbit--small"></div>
+          <div class="sun-disc"></div>
+          <div class="figure figure--runner">
+            <span class="figure-head"></span>
+            <span class="figure-body"></span>
+            <span class="figure-arm figure-arm--left"></span>
+            <span class="figure-arm figure-arm--right"></span>
+            <span class="figure-leg figure-leg--left"></span>
+            <span class="figure-leg figure-leg--right"></span>
+          </div>
+          <div class="board-shape"></div>
+        </div>
+      </section>
+
+      <section class="story story--network section" id="network">
+        <div class="story-number" aria-hidden="true">01</div>
+        <div class="story-copy content-block" data-reveal>
+          <p class="eyebrow">A world of specialists</p>
+          <h2>LOCAL ROOTS.<br />WIDER REACH.</h2>
+          <p class="body-copy">Our network brings together people who understand a place from the inside and act with the confidence of a global team.</p>
+        </div>
+        <div class="network-art image-card image-card--green" data-reveal aria-hidden="true">
+          <div class="planet planet--one"></div>
+          <div class="planet planet--two"></div>
+          <div class="speech-card">For the curious, the generous and the seriously good.</div>
+        </div>
+      </section>
+
+      <section class="story story--people section" id="people">
+        <div class="people-art illustration-card" data-reveal aria-hidden="true">
+          <div class="figure figure--reader">
+            <span class="figure-head"></span>
+            <span class="figure-body"></span>
+            <span class="figure-arm figure-arm--left"></span>
+            <span class="figure-arm figure-arm--right"></span>
+            <span class="book"></span>
+          </div>
+          <div class="arc arc--blue"></div>
+          <div class="dot dot--yellow"></div>
+        </div>
+        <div class="story-copy story-copy--card content-block" data-reveal>
+          <p class="eyebrow">Built for collaboration</p>
+          <h2>PEOPLE<br />MAKE IT.</h2>
+          <p class="body-copy">Different points of view create stronger ideas. We connect specialists around the work, not around the org chart.</p>
+          <a class="text-link" href="#future">How we work</a>
+        </div>
+        <div class="story-number story-number--right" aria-hidden="true">02</div>
+      </section>
+
+      <section class="story story--future section" id="future">
+        <div class="future-copy content-block" data-reveal>
+          <p class="eyebrow">One network, many directions</p>
+          <h2>MOVE WITH<br />PURPOSE.</h2>
+          <p class="body-copy">From a single market to a global launch, each connection starts with the work that needs to happen next.</p>
+        </div>
+        <div class="future-art visual-field visual-field--coral" data-reveal aria-hidden="true">
+          <div class="window-shape"></div>
+          <div class="figure figure--walker">
+            <span class="figure-head"></span>
+            <span class="figure-body"></span>
+            <span class="figure-arm figure-arm--left"></span>
+            <span class="figure-arm figure-arm--right"></span>
+            <span class="figure-leg figure-leg--left"></span>
+            <span class="figure-leg figure-leg--right"></span>
+          </div>
+          <div class="spark spark--one"></div>
+          <div class="spark spark--two"></div>
+        </div>
+      </section>
+
+      <section class="story story--outlook section" id="outlook">
+        <div class="outlook-art image-card image-card--lavender" data-reveal aria-hidden="true">
+          <div class="eye eye--left"></div>
+          <div class="eye eye--right"></div>
+          <div class="smile-line"></div>
+          <div class="ribbon"></div>
+        </div>
+        <div class="outlook-copy content-block" data-reveal>
+          <p class="eyebrow">A shared point of view</p>
+          <h2>MAKE THE<br />NEXT MOVE.</h2>
+          <p class="body-copy">A connected point of view turns local knowledge into meaningful work, wherever it needs to go.</p>
+        </div>
+      </section>
+
+      <section class="outro section" id="end">
+        <div class="outro-copy content-block" data-reveal>
+          <p class="eyebrow">MindMarket</p>
+          <h2>LET'S MAKE<br />SOMETHING<br />MOVE.</h2>
+          <a class="outro-link" href="mailto:hello@example.com">Start a conversation</a>
+        </div>
+      </section>
+
+      <div class="svg-layer" aria-hidden="true">
+        <svg class="scroll-svg" viewBox="0 0 1440 6000" preserveAspectRatio="none" role="presentation">
+          <path
+            class="path-progress"
+            d="M1125,-40 C996,130 1294,282 1162,476 C1040,653 848,670 960,919 C1071,1162 1350,1144 1260,1436 C1178,1708 832,1615 714,1880 C603,2128 840,2324 1086,2249 C1278,2190 1302,2460 1100,2603 C876,2764 686,2654 652,2950 C620,3224 904,3334 1064,3152 C1218,2978 1360,3199 1192,3418 C1006,3664 664,3568 532,3857 C434,4070 665,4230 844,4142 C1064,4034 1208,4236 1030,4453 C869,4650 592,4570 476,4809 C366,5030 563,5203 790,5116 C1012,5031 1123,5282 952,5450 C812,5587 664,5685 714,6038"
+          />
+        </svg>
+      </div>
+    </main>
+
+    <script src="./assets/vendor/gsap.min.js"></script>
+    <script src="./assets/vendor/ScrollTrigger.min.js"></script>
+    <script src="./script.js"></script>
+  </body>
+</html>

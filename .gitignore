@@ -1,0 +1,11 @@
+node_modules/
+dist/
+coverage/
+*.log
+server/uploads/*
+!server/uploads/.gitkeep
+server/data/submissions.json
+!server/data/submissions.json
+.env
+.env.*
+
