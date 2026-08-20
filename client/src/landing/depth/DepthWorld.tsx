@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 type DepthBeatId = "flash10" | "ten-years" | "connected" | "flashback" | "memory";
 type DepthObject = "ten" | "ring" | "disc" | "frame" | "star";
 
@@ -6,6 +8,7 @@ interface DepthBeatData {
   title: string;
   label: string;
   object: DepthObject;
+  cta?: boolean;
 }
 
 const depthBeats: DepthBeatData[] = [
@@ -13,10 +16,10 @@ const depthBeats: DepthBeatData[] = [
   { id: "ten-years", title: "TEN YEARS", label: "2016 — 2026", object: "ring" },
   { id: "connected", title: "CONNECTED", label: "ONE ROAD / MANY FRAMES", object: "disc" },
   { id: "flashback", title: "FLASHBACK", label: "THE ARCHIVE IS MOVING", object: "frame" },
-  { id: "memory", title: "MAKE A MEMORY", label: "YOUR NEXT FRAME IS READY", object: "star" },
+  { id: "memory", title: "MAKE A MEMORY", label: "YOUR NEXT FRAME IS READY", object: "star", cta: true },
 ];
 
-function DepthBeat({ id, title, label, object }: DepthBeatData) {
+function DepthBeat({ id, title, label, object, cta }: DepthBeatData) {
   return (
     <section className={`depth-beat depth-beat--${id}`} data-depth-beat={id} aria-label={title}>
       <div className="depth-beat__content">
@@ -25,6 +28,7 @@ function DepthBeat({ id, title, label, object }: DepthBeatData) {
         <span className={`depth-beat__object depth-beat__object--${object}`} aria-hidden="true">
           {object === "ten" ? "10" : undefined}
         </span>
+        {cta ? <Link className="depth-action" to="/create">CREATE A MEMORY</Link> : null}
       </div>
     </section>
   );

@@ -7,16 +7,16 @@ export interface FilmRoadPose {
 
 const desktopFilmRoadPose: FilmRoadPose = {
   centerX: 500,
-  horizonY: 236,
-  farWidth: 116,
-  nearWidth: 480,
+  horizonY: 232,
+  farWidth: 132,
+  nearWidth: 408,
 };
 
 const compactFilmRoadPose: FilmRoadPose = {
   centerX: 500,
-  horizonY: 240,
-  farWidth: 170,
-  nearWidth: 640,
+  horizonY: 238,
+  farWidth: 190,
+  nearWidth: 460,
 };
 
 export function getFilmRoadPose(compact: boolean) {

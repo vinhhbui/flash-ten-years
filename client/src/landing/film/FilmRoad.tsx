@@ -55,14 +55,15 @@ function SliceArtwork({ index }: { index: number }) {
 
   return (
     <g>
-      <rect className="film-road__frame-window" x="18" y="10" width="64" height="80" rx="2" fill={tone} />
-      <path className="film-road__image-mountain" d="M21 77 L39 48 L51 61 L65 37 L79 70 V87 H21 Z" />
-      <circle className="film-road__image-sun" cx="66" cy="30" r="7" />
-      <path className="film-road__separator" d="M16 4 H84 M16 96 H84" />
-      <rect className="film-road__sprocket" x="4" y="10" width="9" height="25" rx="2" />
-      <rect className="film-road__sprocket" x="4" y="62" width="9" height="25" rx="2" />
-      <rect className="film-road__sprocket" x="87" y="10" width="9" height="25" rx="2" />
-      <rect className="film-road__sprocket" x="87" y="62" width="9" height="25" rx="2" />
+      <rect className="film-road__frame-matte" x="17" y="9" width="66" height="82" rx="2" />
+      <rect className="film-road__frame-window" x="21" y="14" width="58" height="72" rx="1" fill={tone} />
+      <path className="film-road__image-mountain" d="M24 75 L40 50 L51 61 L65 39 L76 69 V83 H24 Z" />
+      <circle className="film-road__image-sun" cx="66" cy="31" r="6" />
+      <path className="film-road__separator" d="M15 4 H85 M15 96 H85" />
+      <rect className="film-road__sprocket" x="5" y="11" width="8" height="24" rx="2" />
+      <rect className="film-road__sprocket" x="5" y="61" width="8" height="24" rx="2" />
+      <rect className="film-road__sprocket" x="87" y="11" width="8" height="24" rx="2" />
+      <rect className="film-road__sprocket" x="87" y="61" width="8" height="24" rx="2" />
     </g>
   );
 }

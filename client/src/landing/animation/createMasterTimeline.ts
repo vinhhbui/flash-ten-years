@@ -50,7 +50,8 @@ function addDepthBeat(
     master.set(beat, { autoAlpha: 0 }, 0);
   }
   master.set(beat, {
-    autoAlpha: 1,
+    visibility: "visible",
+    opacity: 0.16,
     xPercent: -50,
     yPercent: -50,
     x: laneX,
@@ -63,6 +64,7 @@ function addDepthBeat(
   }, config.start);
 
   master.to(beat, {
+    opacity: 0.62,
     y: "0vh",
     z: -620,
     scale: approachScale,
@@ -73,6 +75,7 @@ function addDepthBeat(
   }, config.start);
 
   master.to(beat, {
+    opacity: 1,
     y: "14vh",
     z: -80,
     scale: 0.96,
@@ -84,6 +87,7 @@ function addDepthBeat(
 
   if (config.settle) {
     master.to(beat, {
+      opacity: 1,
       y: "15vh",
       z: -40,
       scale: 1,
@@ -93,6 +97,7 @@ function addDepthBeat(
   }
 
   master.to(beat, {
+    opacity: 0.96,
     y: "15vh",
     z: -40,
     scale: 1,
@@ -100,6 +105,7 @@ function addDepthBeat(
   }, readStart);
 
   master.to(beat, {
+    opacity: 0.74,
     y: "24vh",
     z: 220,
     scale: compact ? 1.5 : 1.7,
@@ -109,6 +115,7 @@ function addDepthBeat(
   }, nearStart);
 
   master.to(beat, {
+    opacity: 0,
     x: `${config.passDriftX}vw`,
     y: "36vh",
     z: 780,
