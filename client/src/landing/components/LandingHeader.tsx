@@ -1,0 +1,17 @@
+import { Link } from "react-router-dom";
+
+export function LandingHeader() {
+  return (
+    <header className="film-road-nav" aria-label="FLASH 10 navigation">
+      <Link className="film-road-nav__brand" to="/" aria-label="FLASH 10 home">
+        FLASH <span>10</span>
+      </Link>
+      <nav className="film-road-nav__links" aria-label="Landing stages">
+        <a href="#manifesto">THE REEL</a>
+        <a href="#culture">MEMORIES</a>
+        <a href="#final">NEXT FRAME</a>
+      </nav>
+      <Link className="film-road-nav__create" to="/create">CREATE</Link>
+    </header>
+  );
+}
