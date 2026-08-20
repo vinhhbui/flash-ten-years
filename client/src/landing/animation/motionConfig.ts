@@ -1,36 +1,53 @@
 import type { FilmRoadState } from "../film/FilmRoad";
 import type { FilmRoadVariant } from "../film/filmRoadConfig";
 
-export const sceneIds = ["hero", "manifesto", "media", "takeover", "culture", "final"] as const;
+export const masterTimelineLabels = {
+  heroHold: 0,
+  heroTakeover: 13,
+  manifestoRead: 23,
+  mediaEnter: 37,
+  mediaSettle: 42,
+  mediaTakeover: 54,
+  objectField: 64,
+  finalManifesto: 77,
+  finalTakeover: 84,
+  finalCTA: 90,
+} as const;
 
-export type MotionSceneId = (typeof sceneIds)[number];
+export const MASTER_TIMELINE_DURATION = 100;
+export const MASTER_SCROLL_VH = {
+  desktop: 8.4,
+  compact: 5.8,
+} as const;
 
-interface SceneMotionConfig {
-  desktopPinVh: number;
-  compactPinVh: number;
-  filmFrom: FilmRoadVariant;
-  filmTo: FilmRoadVariant;
-  reelStart: number;
-  reelEnd: number;
+interface FilmRoadKeyframe {
+  progress: number;
+  variant: FilmRoadVariant;
 }
 
-export const sceneMotionConfig: Record<MotionSceneId, SceneMotionConfig> = {
-  hero: { desktopPinVh: 2.25, compactPinVh: 1.35, filmFrom: "perspective", filmTo: "open-bend", reelStart: 0.04, reelEnd: 0.92 },
-  manifesto: { desktopPinVh: 1.9, compactPinVh: 1.2, filmFrom: "open-bend", filmTo: "s-curve", reelStart: 0.92, reelEnd: 1.66 },
-  media: { desktopPinVh: 2.2, compactPinVh: 1.35, filmFrom: "s-curve", filmTo: "diagonal", reelStart: 1.66, reelEnd: 2.58 },
-  takeover: { desktopPinVh: 1.8, compactPinVh: 1.15, filmFrom: "diagonal", filmTo: "active-frame", reelStart: 2.58, reelEnd: 3.34 },
-  culture: { desktopPinVh: 2.05, compactPinVh: 1.3, filmFrom: "active-frame", filmTo: "open-bend", reelStart: 3.34, reelEnd: 4.17 },
-  final: { desktopPinVh: 1.2, compactPinVh: 0.9, filmFrom: "open-bend", filmTo: "outro", reelStart: 4.17, reelEnd: 4.58 },
-};
+const filmRoadKeyframes: FilmRoadKeyframe[] = [
+  { progress: 0, variant: "perspective" },
+  { progress: 0.18, variant: "open-bend" },
+  { progress: 0.38, variant: "s-curve" },
+  { progress: 0.58, variant: "diagonal" },
+  { progress: 0.72, variant: "active-frame" },
+  { progress: 0.88, variant: "open-bend" },
+  { progress: 1, variant: "outro" },
+];
 
-export function getFilmRoadState(scene: MotionSceneId, progress: number): FilmRoadState {
-  const config = sceneMotionConfig[scene];
+export function getFilmRoadState(progress: number): FilmRoadState {
   const amount = Math.max(0, Math.min(1, progress));
+  const targetIndex = filmRoadKeyframes.findIndex((keyframe) => keyframe.progress >= amount);
+  const nextIndex = targetIndex === -1 ? filmRoadKeyframes.length - 1 : targetIndex;
+  const previousIndex = Math.max(0, nextIndex - 1);
+  const previous = filmRoadKeyframes[previousIndex];
+  const next = filmRoadKeyframes[nextIndex];
+  const range = Math.max(next.progress - previous.progress, 0.0001);
 
   return {
-    from: config.filmFrom,
-    to: config.filmTo,
-    mix: amount,
-    reel: config.reelStart + (config.reelEnd - config.reelStart) * amount,
+    from: previous.variant,
+    to: next.variant,
+    mix: (amount - previous.progress) / range,
+    reel: 0.04 + amount * 4.54,
   };
 }

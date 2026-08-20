@@ -1,83 +1,64 @@
-import { type RefObject, useLayoutEffect } from "react";
+import { type RefObject, useEffect, useLayoutEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { FilmRoadHandle } from "../film/FilmRoad";
-import { createCultureTimeline } from "./createCultureTimeline";
-import { createFinalTimeline } from "./createFinalTimeline";
-import { createHeroTimeline } from "./createHeroTimeline";
-import { createManifestoTimeline } from "./createManifestoTimeline";
-import { createMediaTimeline } from "./createMediaTimeline";
-import { createTakeoverTimeline } from "./createTakeoverTimeline";
-import { refreshLandingScroll } from "./createStageTimeline";
-import { getFilmRoadState, sceneMotionConfig, type MotionSceneId } from "./motionConfig";
+import { createMasterTimeline } from "./createMasterTimeline";
+import { getFilmRoadState } from "./motionConfig";
 import { useReducedMotion } from "./useReducedMotion";
 
 interface UseLandingScrollArgs {
   rootRef: RefObject<HTMLElement>;
+  trackRef: RefObject<HTMLDivElement>;
+  stageRef: RefObject<HTMLElement>;
   filmRef: RefObject<FilmRoadHandle>;
 }
 
-const timelineFactories = {
-  hero: createHeroTimeline,
-  manifesto: createManifestoTimeline,
-  media: createMediaTimeline,
-  takeover: createTakeoverTimeline,
-  culture: createCultureTimeline,
-  final: createFinalTimeline,
-} as const;
+function getCompactViewport() {
+  return typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches;
+}
 
-export function useLandingScroll({ rootRef, filmRef }: UseLandingScrollArgs) {
+export function useLandingScroll({ rootRef, trackRef, stageRef, filmRef }: UseLandingScrollArgs) {
   const reducedMotion = useReducedMotion();
+  const [compact, setCompact] = useState(getCompactViewport);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    const updateViewport = () => setCompact(mediaQuery.matches);
+
+    updateViewport();
+    mediaQuery.addEventListener("change", updateViewport);
+    return () => mediaQuery.removeEventListener("change", updateViewport);
+  }, []);
 
   useLayoutEffect(() => {
     const root = rootRef.current;
+    const track = trackRef.current;
+    const stage = stageRef.current;
     const film = filmRef.current;
-    if (!root || !film) return undefined;
+    if (!root || !track || !stage || !film) return undefined;
 
     gsap.registerPlugin(ScrollTrigger);
-    let compact = window.matchMedia("(max-width: 767px)").matches;
     film.setCompact(compact);
 
     if (reducedMotion) {
-      film.setState(getFilmRoadState("final", 1));
+      film.setState(getFilmRoadState(0.72));
       return undefined;
     }
 
     const context = gsap.context(() => {
-      const hero = root.querySelector<HTMLElement>("[data-scene='hero']");
-      if (hero) {
-        const intro = gsap.timeline({ defaults: { ease: "back.out(1.6)" } });
-        intro
-          .fromTo(hero.querySelectorAll(".hero-title .kinetic-text__line"), { yPercent: 115, rotate: -7 }, { yPercent: 0, rotate: 0, duration: 0.72, stagger: 0.08 })
-          .fromTo(hero.querySelectorAll(".hero-object"), { scale: 0.2, rotate: -35 }, { scale: 1, rotate: 0, duration: 0.54, stagger: 0.06 }, "-=0.42")
-          .fromTo(hero.querySelector(".hero-manifesto"), { scaleX: 0.5 }, { scaleX: 1, duration: 0.42 }, "-=0.45");
-      }
-
-      (Object.keys(timelineFactories) as MotionSceneId[]).forEach((sceneId) => {
-        const stage = root.querySelector<HTMLElement>(`[data-scene='${sceneId}']`);
-        if (!stage) return;
-
-        const config = sceneMotionConfig[sceneId];
-        timelineFactories[sceneId]({
-          stage,
-          pinVh: compact ? config.compactPinVh : config.desktopPinVh,
-          applyFilm: (progress) => film.setState(getFilmRoadState(sceneId, progress)),
-        });
-      });
+      createMasterTimeline({ track, stage, film, compact });
     }, root);
 
-    const handleResize = () => {
-      compact = window.matchMedia("(max-width: 767px)").matches;
-      film.setCompact(compact);
-      refreshLandingScroll();
-    };
+    const handleResize = () => ScrollTrigger.refresh();
 
     window.addEventListener("resize", handleResize);
-    requestAnimationFrame(refreshLandingScroll);
+    requestAnimationFrame(() => ScrollTrigger.refresh());
 
     return () => {
       window.removeEventListener("resize", handleResize);
       context.revert();
     };
-  }, [filmRef, reducedMotion, rootRef]);
+  }, [compact, filmRef, reducedMotion, rootRef, stageRef, trackRef]);
+
+  return reducedMotion;
 }

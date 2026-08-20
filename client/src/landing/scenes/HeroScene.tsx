@@ -1,10 +1,9 @@
 import { FloatingObject } from "../components/FloatingObject";
 import { KineticText } from "../components/KineticText";
-import { SceneStage } from "../components/SceneStage";
 
 export function HeroScene() {
   return (
-    <SceneStage id="hero" className="film-scene--hero">
+    <section className="landing-composition hero-composition" data-composition="hero">
       <div className="scene-grid" aria-hidden="true" />
       <p className="scene-kicker hero-kicker">FLASH 10 / 2016 — 2026</p>
       <KineticText as="h1" className="hero-title" lines={["FLASH", "10"]} dataAttribute="hero" />
@@ -16,6 +15,6 @@ export function HeroScene() {
       <FloatingObject className="floating-object--disc hero-object hero-object--disc" />
       <FloatingObject className="floating-object--frame hero-object hero-object--frame" />
       <FloatingObject className="floating-object--label hero-object hero-object--label" label="A FLASH 10 memory label" />
-    </SceneStage>
+    </section>
   );
 }
