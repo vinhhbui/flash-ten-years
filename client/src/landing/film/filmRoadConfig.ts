@@ -10,8 +10,8 @@ export interface FilmRoadPose {
 
 const desktopFilmRoadPose: FilmRoadPose = {
   centerX: 500,
-  horizonY: 500,
-  foregroundY: 1230,
+  horizonY: 650,
+  foregroundY: 1280,
   farWidth: 100,
   nearWidth: 680,
   depthPower: 2.15,

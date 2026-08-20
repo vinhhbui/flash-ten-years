@@ -3,6 +3,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { FilmRoadHandle } from "../film/FilmRoad";
 import {
   CAMERA_END_Z,
+  CAMERA_START_Z,
   MASTER_TIMELINE_DURATION,
   MASTER_SCROLL_VH,
   getFilmRoadState,
@@ -22,10 +23,11 @@ export function createMasterTimeline({ track, stage, film, compact }: CreateMast
   if (!background) return null;
 
   const projector = createSpatialProjector({ stage, compact });
-  const camera = { z: 0 };
+  const camera = { z: CAMERA_START_Z };
+  const cameraTravel = CAMERA_END_Z - CAMERA_START_Z;
   const renderWorld = () => {
     projector.render(camera.z);
-    film.setState(getFilmRoadState(camera.z / CAMERA_END_Z));
+    film.setState(getFilmRoadState((camera.z - CAMERA_START_Z) / cameraTravel));
   };
 
   const master = gsap.timeline({

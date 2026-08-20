@@ -12,7 +12,8 @@ export const masterTimelineLabels = {
 } as const;
 
 export const MASTER_TIMELINE_DURATION = 100;
-export const CAMERA_END_Z = 12400;
+export const CAMERA_START_Z = 3600;
+export const CAMERA_END_Z = 13000;
 export const MASTER_SCROLL_VH = {
   desktop: 9.6,
   compact: 7.2,

@@ -148,18 +148,15 @@
   overflow: hidden;
   pointer-events: none;
   transform: translateZ(0);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, transparent 43%, rgba(0, 0, 0, 0.16) 47%, #000 56%, #000 100%);
-  mask-image: linear-gradient(to bottom, transparent 0%, transparent 43%, rgba(0, 0, 0, 0.16) 47%, #000 56%, #000 100%);
+  filter: none;
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 .film-road svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .film-road__surface { fill: rgba(242, 239, 231, 0.92); stroke: none; }
 .film-road__edge-band { fill: #171722; stroke: none; }
 .film-road__separator { fill: none; stroke: rgba(23, 23, 34, 0.1); stroke-width: 1.5px; }
 .film-road__sprocket { fill: #f2efe7; }
-
-@media (min-width: 768px) {
-  .film-road { -webkit-mask-image: linear-gradient(to bottom, transparent 0%, transparent 45%, rgba(0, 0, 0, 0.18) 49%, #000 57%, #000 100%); mask-image: linear-gradient(to bottom, transparent 0%, transparent 45%, rgba(0, 0, 0, 0.18) 49%, #000 57%, #000 100%); }
-}
 
 .spatial-node--action {
   z-index: 6;

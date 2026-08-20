@@ -15,10 +15,21 @@ interface SpatialProjectorOptions {
 
 const clamp = (value: number, minimum: number, maximum: number) => Math.min(Math.max(value, minimum), maximum);
 
+function resolveProjectionScale(distance: number, perspective: number, passDepth: number) {
+  if (distance >= 0) {
+    return Math.max(0.035, perspective / (perspective + distance));
+  }
+
+  const passProgress = clamp(-distance / Math.max(1, passDepth), 0, 1);
+  return 1 / (1 - passProgress * 0.92);
+}
+
 export function createSpatialProjector({ stage, compact }: SpatialProjectorOptions) {
   const perspective = compact ? 860 : 1120;
-  const hazeDistance = compact ? 4400 : 5200;
-  const hazeRange = compact ? 2600 : 3400;
+  const firstSceneRevealDistance = compact ? 4400 : 5200;
+  const firstSceneRevealRange = compact ? 2600 : 3400;
+  const futureSceneRevealDistance = compact ? 1400 : 1600;
+  const futureSceneRevealRange = compact ? 1400 : 1600;
   let width = 0;
   let height = 0;
 
@@ -36,6 +47,7 @@ export function createSpatialProjector({ stage, compact }: SpatialProjectorOptio
       passDepth: Number(element.dataset.passDepth),
     };
   }).filter((node): node is SpatialNode => node !== null);
+  const firstSceneZ = Math.min(...nodes.map((node) => node.sceneZ));
 
   const resize = () => {
     width = stage.clientWidth;
@@ -49,11 +61,14 @@ export function createSpatialProjector({ stage, compact }: SpatialProjectorOptio
     const vanishingY = height * (compact ? 0.48 : 0.47);
 
     nodes.forEach((node) => {
+      const sceneDistance = node.sceneZ - cameraZ;
       const distance = node.sceneZ - node.localZ - cameraZ;
-      const boundedDistance = Math.max(distance, -perspective * 0.84);
-      const scale = clamp(perspective / (perspective + boundedDistance), 0.035, compact ? 4.6 : 6.2);
-      const pastCamera = distance < -node.passDepth;
-      const farHaze = clamp((hazeDistance - distance) / hazeRange, 0, 1);
+      const scale = resolveProjectionScale(distance, perspective, node.passDepth);
+      const pastCamera = distance <= -node.passDepth;
+      const isFirstScene = node.sceneZ === firstSceneZ;
+      const revealDistance = isFirstScene ? firstSceneRevealDistance : futureSceneRevealDistance;
+      const revealRange = isFirstScene ? firstSceneRevealRange : futureSceneRevealRange;
+      const farHaze = clamp((revealDistance - sceneDistance) / revealRange, 0, 1);
       const opacity = pastCamera ? 0 : farHaze;
       const x = vanishingX + node.worldX * scale;
       const y = vanishingY + node.worldY * scale;
