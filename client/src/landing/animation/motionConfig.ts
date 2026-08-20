@@ -1,14 +1,14 @@
 import type { FilmRoadState } from "../film/FilmRoad";
-import type { FilmRoadVariant } from "../film/filmRoadConfig";
 
 export const masterTimelineLabels = {
-  flash10Read: 0,
-  tenYearsHorizon: 4,
-  tenYearsRead: 11,
-  connectedHorizon: 18,
-  flashbackHorizon: 32,
-  memoryHorizon: 46,
-  memorySettle: 59,
+  flash10Horizon: 0,
+  flash10Read: 12,
+  tenYearsHorizon: 15,
+  tenYearsRead: 27,
+  connectedHorizon: 30,
+  flashbackHorizon: 45,
+  memoryHorizon: 60,
+  memorySettle: 72,
 } as const;
 
 export const MASTER_TIMELINE_DURATION = 100;
@@ -17,34 +17,10 @@ export const MASTER_SCROLL_VH = {
   compact: 6.2,
 } as const;
 
-interface FilmRoadKeyframe {
-  progress: number;
-  variant: FilmRoadVariant;
-}
-
-const filmRoadKeyframes: FilmRoadKeyframe[] = [
-  { progress: 0, variant: "perspective" },
-  { progress: 0.2, variant: "open-bend" },
-  { progress: 0.4, variant: "s-curve" },
-  { progress: 0.6, variant: "diagonal" },
-  { progress: 0.78, variant: "active-frame" },
-  { progress: 0.9, variant: "open-bend" },
-  { progress: 1, variant: "outro" },
-];
-
 export function getFilmRoadState(progress: number): FilmRoadState {
   const amount = Math.max(0, Math.min(1, progress));
-  const targetIndex = filmRoadKeyframes.findIndex((keyframe) => keyframe.progress >= amount);
-  const nextIndex = targetIndex === -1 ? filmRoadKeyframes.length - 1 : targetIndex;
-  const previousIndex = Math.max(0, nextIndex - 1);
-  const previous = filmRoadKeyframes[previousIndex];
-  const next = filmRoadKeyframes[nextIndex];
-  const range = Math.max(next.progress - previous.progress, 0.0001);
 
   return {
-    from: previous.variant,
-    to: next.variant,
-    mix: (amount - previous.progress) / range,
-    reel: 0.04 + amount * 4.54,
+    reel: 0.04 + amount * 4.2,
   };
 }

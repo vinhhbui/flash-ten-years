@@ -1,17 +1,9 @@
 import { forwardRef, useImperativeHandle, useLayoutEffect, useRef } from "react";
-import {
-  getFilmRoadPose,
-  interpolateFilmRoadPose,
-  type FilmRoadPose,
-  type FilmRoadVariant,
-} from "./filmRoadConfig";
+import { getFilmRoadPose, type FilmRoadPose } from "./filmRoadConfig";
 
 const FRAME_COUNT = 16;
 
 export interface FilmRoadState {
-  from: FilmRoadVariant;
-  to: FilmRoadVariant;
-  mix: number;
   reel: number;
 }
 
@@ -28,9 +20,8 @@ function power(value: number) {
   return Math.pow(Math.max(0, value), 1.65);
 }
 
-function resolveCenter(pose: FilmRoadPose, depth: number) {
-  const bend = pose.bend * (Math.sin(depth * Math.PI) * 0.72 + depth * 0.28);
-  return pose.centerX + bend;
+function resolveCenter(pose: FilmRoadPose) {
+  return pose.centerX;
 }
 
 function resolveWidth(pose: FilmRoadPose, depth: number) {
@@ -43,7 +34,7 @@ function resolveY(pose: FilmRoadPose, depth: number) {
 
 function makeFilmBody(pose: FilmRoadPose) {
   const samples = [0, 0.32, 0.66, 1.06].map((depth) => ({
-    center: resolveCenter(pose, depth),
+    center: resolveCenter(pose),
     width: resolveWidth(pose, depth),
     y: resolveY(pose, depth),
   }));
@@ -72,40 +63,23 @@ function SliceArtwork({ index }: { index: number }) {
       <rect className="film-road__sprocket" x="4" y="62" width="9" height="25" rx="2" />
       <rect className="film-road__sprocket" x="87" y="10" width="9" height="25" rx="2" />
       <rect className="film-road__sprocket" x="87" y="62" width="9" height="25" rx="2" />
-      <text className="film-road__frame-number" x="21" y="20">{String(index + 1).padStart(2, "0")}</text>
     </g>
   );
 }
 
 export const FilmRoad = forwardRef<FilmRoadHandle>(function FilmRoad(_, ref) {
-  const svgRef = useRef<SVGSVGElement>(null);
-  const roadRef = useRef<SVGGElement>(null);
-  const shadowRef = useRef<SVGPathElement>(null);
   const bodyRef = useRef<SVGPathElement>(null);
   const sliceRefs = useRef<SVGGElement[]>([]);
   const compactRef = useRef(false);
-  const currentState = useRef<FilmRoadState>({ from: "perspective", to: "perspective", mix: 0, reel: 0.04 });
+  const currentState = useRef<FilmRoadState>({ reel: 0.04 });
 
   const render = (state: FilmRoadState) => {
-    const svg = svgRef.current;
-    const road = roadRef.current;
-    const shadow = shadowRef.current;
     const body = bodyRef.current;
-    if (!svg || !road || !shadow || !body) return;
+    if (!body) return;
 
-    const pose = interpolateFilmRoadPose(
-      getFilmRoadPose(state.from, compactRef.current),
-      getFilmRoadPose(state.to, compactRef.current),
-      state.mix,
-    );
-    const activeDepth = 0.57;
-    let activeIndex = 0;
-    let activeDistance = Number.POSITIVE_INFINITY;
+    const pose = getFilmRoadPose(compactRef.current);
 
-    road.setAttribute("transform", `rotate(${pose.tilt} 500 500)`);
-    shadow.setAttribute("d", makeFilmBody(pose));
     body.setAttribute("d", makeFilmBody(pose));
-    svg.style.setProperty("--film-active-scale", pose.activeScale.toFixed(3));
 
     sliceRefs.current.forEach((slice, index) => {
       if (!slice) return;
@@ -114,20 +88,10 @@ export const FilmRoad = forwardRef<FilmRoadHandle>(function FilmRoad(_, ref) {
       const nextDepth = Math.min(depth + 1 / FRAME_COUNT + 0.012, 1.08);
       const width = resolveWidth(pose, depth);
       const height = Math.max(14, resolveY(pose, nextDepth) - resolveY(pose, depth) + 2);
-      const x = resolveCenter(pose, depth) - width / 2;
+      const x = resolveCenter(pose) - width / 2;
       const y = resolveY(pose, depth);
-      const distance = Math.abs(depth - activeDepth);
-
-      if (distance < activeDistance) {
-        activeIndex = index;
-        activeDistance = distance;
-      }
 
       slice.setAttribute("transform", `translate(${x.toFixed(2)} ${y.toFixed(2)}) scale(${(width / 100).toFixed(4)} ${(height / 100).toFixed(4)})`);
-    });
-
-    sliceRefs.current.forEach((slice, index) => {
-      slice?.classList.toggle("is-active", index === activeIndex);
     });
   };
 
@@ -148,10 +112,9 @@ export const FilmRoad = forwardRef<FilmRoadHandle>(function FilmRoad(_, ref) {
 
   return (
     <div className="film-road" aria-hidden="true">
-      <svg ref={svgRef} viewBox="0 0 1000 1160" preserveAspectRatio="none" focusable="false">
-        <g ref={roadRef}>
-          <path ref={shadowRef} className="film-road__shadow" d={makeFilmBody(getFilmRoadPose("perspective", false))} />
-          <path ref={bodyRef} className="film-road__body" d={makeFilmBody(getFilmRoadPose("perspective", false))} />
+      <svg viewBox="0 0 1000 1160" preserveAspectRatio="none" focusable="false">
+        <g>
+          <path ref={bodyRef} className="film-road__body" d={makeFilmBody(getFilmRoadPose(false))} />
           {Array.from({ length: FRAME_COUNT }, (_, index) => (
             <g
               key={index}

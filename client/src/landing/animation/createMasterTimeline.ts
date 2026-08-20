@@ -18,19 +18,17 @@ interface DepthBeatConfig {
   id: string;
   start: number;
   laneX: number;
-  exitX: number;
-  exitY: number;
+  passDriftX: number;
   rotationY: number;
-  first?: boolean;
   settle?: boolean;
 }
 
 const depthBeats: DepthBeatConfig[] = [
-  { id: "flash10", start: 0, laneX: 0, exitX: -72, exitY: 48, rotationY: -12, first: true },
-  { id: "ten-years", start: 4, laneX: -8, exitX: 74, exitY: -44, rotationY: 11 },
-  { id: "connected", start: 18, laneX: 8, exitX: -64, exitY: 42, rotationY: -10 },
-  { id: "flashback", start: 32, laneX: -5, exitX: 70, exitY: 48, rotationY: 10 },
-  { id: "memory", start: 46, laneX: 0, exitX: 0, exitY: 0, rotationY: 0, settle: true },
+  { id: "flash10", start: 0, laneX: 0, passDriftX: -10, rotationY: -3 },
+  { id: "ten-years", start: 15, laneX: -3, passDriftX: 12, rotationY: 3 },
+  { id: "connected", start: 30, laneX: 3, passDriftX: -8, rotationY: -2 },
+  { id: "flashback", start: 45, laneX: -2, passDriftX: 10, rotationY: 2 },
+  { id: "memory", start: 60, laneX: 0, passDriftX: 0, rotationY: 0, settle: true },
 ];
 
 function addDepthBeat(
@@ -39,102 +37,90 @@ function addDepthBeat(
   config: DepthBeatConfig,
   compact: boolean,
 ) {
-  const object = beat.querySelector<HTMLElement>(".depth-beat__object");
-  const farScale = compact ? 0.18 : 0.16;
-  const approachScale = compact ? 0.5 : 0.38;
-  const foregroundScale = compact ? 3.2 : 6;
+  const farScale = compact ? 0.15 : 0.12;
+  const approachScale = compact ? 0.36 : 0.32;
+  const foregroundScale = compact ? 4.2 : 5.2;
   const laneX = `${config.laneX}vw`;
-  const entryDuration = config.first ? 6 : 7;
-  const readStart = config.first ? config.start : config.start + entryDuration;
-  const foregroundStart = readStart + 6;
+  const approachStart = config.start + 7;
+  const readStart = approachStart + 5;
+  const nearStart = readStart + 4;
+  const passStart = nearStart + 4;
 
-  master.set(beat, { autoAlpha: 0 }, 0);
-
-  if (config.first) {
-    master.set(beat, {
-      autoAlpha: 1,
-      xPercent: -50,
-      yPercent: -50,
-      x: laneX,
-      y: "7vh",
-      z: -620,
-      scale: approachScale,
-      rotationY: config.rotationY * 0.5,
-      rotationX: 3,
-      rotationZ: -1,
-    }, config.start);
-  } else {
-    master.set(beat, {
-      autoAlpha: 1,
-      xPercent: -50,
-      yPercent: -50,
-      x: laneX,
-      y: "0vh",
-      z: -900,
-      scale: farScale,
-      rotationY: config.rotationY * 0.35,
-      rotationX: 2,
-      rotationZ: 0,
-    }, config.start);
-    master.to(beat, {
-      y: "8vh",
-      z: -620,
-      scale: approachScale,
-      rotationY: config.rotationY * 0.7,
-      rotationX: 3,
-      duration: entryDuration,
-    }, config.start);
+  if (config.start > 0) {
+    master.set(beat, { autoAlpha: 0 }, 0);
   }
+  master.set(beat, {
+    autoAlpha: 1,
+    xPercent: -50,
+    yPercent: -50,
+    x: laneX,
+    y: "-9vh",
+    z: -1100,
+    scale: farScale,
+    rotationY: config.rotationY * 0.35,
+    rotationX: 1,
+    rotationZ: config.rotationY * -0.12,
+  }, config.start);
 
   master.to(beat, {
-    y: "18vh",
-    z: -70,
-    scale: 1,
+    y: "0vh",
+    z: -620,
+    scale: approachScale,
+    rotationY: config.rotationY * 0.7,
+    rotationX: 1.5,
+    rotationZ: config.rotationY * -0.16,
+    duration: 7,
+  }, config.start);
+
+  master.to(beat, {
+    y: "14vh",
+    z: -80,
+    scale: 0.96,
     rotationY: 0,
     rotationX: 0,
     rotationZ: 0,
-    duration: 6,
-  }, readStart);
-
-  if (object) {
-    master.to(object, {
-      rotation: config.rotationY * -1.8,
-      duration: 6,
-    }, readStart - 2);
-  }
+    duration: 5,
+  }, approachStart);
 
   if (config.settle) {
     master.to(beat, {
-      y: "20vh",
-      z: -10,
-      scale: 1.06,
-      duration: 14,
-    }, foregroundStart);
+      y: "15vh",
+      z: -40,
+      scale: 1,
+      duration: 24,
+    }, readStart);
     return;
   }
 
   master.to(beat, {
-    y: "27vh",
-    z: 250,
-    scale: compact ? 1.65 : 1.95,
-    rotationY: config.rotationY * 0.4,
-    rotationX: -3,
+    y: "15vh",
+    z: -40,
+    scale: 1,
     duration: 4,
-  }, foregroundStart);
+  }, readStart);
 
   master.to(beat, {
-    x: `${config.exitX}vw`,
-    y: `${config.exitY}vh`,
-    z: 380,
+    y: "24vh",
+    z: 220,
+    scale: compact ? 1.5 : 1.7,
+    rotationY: config.rotationY * 0.45,
+    rotationX: -1,
+    duration: 4,
+  }, nearStart);
+
+  master.to(beat, {
+    x: `${config.passDriftX}vw`,
+    y: "36vh",
+    z: 780,
     scale: foregroundScale,
     rotationY: config.rotationY,
-    rotationX: -8,
-    rotationZ: config.rotationY * 0.35,
-    duration: 7,
-  }, foregroundStart + 4);
+    rotationX: -2,
+    rotationZ: config.rotationY * 0.25,
+    duration: 5,
+  }, passStart);
 
   // The beat is hidden only after its geometry has moved beyond the camera.
-  master.set(beat, { autoAlpha: 0 }, foregroundStart + 11);
+  master.set(beat, { autoAlpha: 0 }, passStart + 5);
 }
 
 export function createMasterTimeline({ track, stage, film, compact }: CreateMasterTimelineArgs) {
@@ -153,7 +139,7 @@ export function createMasterTimeline({ track, stage, film, compact }: CreateMast
       start: "top top",
       end: () => `+=${Math.round(window.innerHeight * (compact ? MASTER_SCROLL_VH.compact : MASTER_SCROLL_VH.desktop))}`,
       pin: stage,
-      scrub: 0.8,
+      scrub: 1.1,
       anticipatePin: 1,
       invalidateOnRefresh: true,
     },
