@@ -1,39 +1,53 @@
 import { Link } from "react-router-dom";
+import { spatialScenes, type SpatialNodeConfig } from "./spatialSceneConfig";
 
-type DepthBeatId = "flash10" | "ten-years" | "connected" | "flashback" | "memory";
-type DepthObject = "ten" | "ring" | "disc" | "frame" | "star";
-
-interface DepthBeatData {
-  id: DepthBeatId;
+interface SpatialNodeProps {
   title: string;
   label: string;
-  object: DepthObject;
-  cta?: boolean;
+  node: SpatialNodeConfig;
 }
 
-const depthBeats: DepthBeatData[] = [
-  { id: "flash10", title: "FLASH 10", label: "THE ROAD STARTS HERE", object: "ten" },
-  { id: "ten-years", title: "TEN YEARS", label: "2016 — 2026", object: "ring" },
-  { id: "connected", title: "CONNECTED", label: "ONE ROAD / MANY FRAMES", object: "disc" },
-  { id: "flashback", title: "FLASHBACK", label: "THE ARCHIVE IS MOVING", object: "frame" },
-  { id: "memory", title: "MAKE A MEMORY", label: "YOUR NEXT FRAME IS READY", object: "star", cta: true },
-];
+function SpatialNode({ title, label, node }: SpatialNodeProps) {
+  const attributes = {
+    "data-spatial-node": "",
+    "data-world-x": node.worldX,
+    "data-world-y": node.worldY,
+    "data-local-z": node.localZ,
+    "data-rotation": node.rotation ?? 0,
+    "data-pass-depth": node.passDepth ?? 700,
+  };
 
-function DepthBeat({ id, title, label, object, cta }: DepthBeatData) {
+  if (node.type === "label") {
+    return <p {...attributes} className="spatial-node spatial-node--label">{label}</p>;
+  }
+
+  if (node.type === "title") {
+    return <h2 {...attributes} className="spatial-node spatial-node--title">{title}</h2>;
+  }
+
+  if (node.type === "action") {
+    return <Link {...attributes} className="spatial-node spatial-node--action" to="/create">CREATE A MEMORY</Link>;
+  }
+
   return (
-    <section className={`depth-beat depth-beat--${id}`} data-depth-beat={id} aria-label={title}>
-      <div className="depth-beat__content">
-        <p className="depth-beat__label">{label}</p>
-        <h2 className="depth-beat__title">{title}</h2>
-        <span className={`depth-beat__object depth-beat__object--${object}`} aria-hidden="true">
-          {object === "ten" ? "10" : undefined}
-        </span>
-        {cta ? <Link className="depth-action" to="/create">CREATE A MEMORY</Link> : null}
-      </div>
+    <span
+      {...attributes}
+      className={`spatial-node spatial-node--${node.type} spatial-node--${node.object}`}
+      aria-hidden="true"
+    >
+      {node.object === "ten" ? "10" : undefined}
+    </span>
+  );
+}
+
+function DepthScene({ id, title, label, worldZ, nodes }: typeof spatialScenes[number]) {
+  return (
+    <section className={`depth-scene depth-scene--${id}`} data-depth-scene={id} data-world-z={worldZ} aria-label={title}>
+      {nodes.map((node) => <SpatialNode key={node.id} title={title} label={label} node={node} />)}
     </section>
   );
 }
 
 export function DepthWorld() {
-  return <div className="depth-world">{depthBeats.map((beat) => <DepthBeat key={beat.id} {...beat} />)}</div>;
+  return <div className="spatial-world">{spatialScenes.map((scene) => <DepthScene key={scene.id} {...scene} />)}</div>;
 }

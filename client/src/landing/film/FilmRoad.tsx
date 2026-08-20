@@ -1,9 +1,8 @@
 import { forwardRef, useImperativeHandle, useLayoutEffect, useRef } from "react";
 import { getFilmRoadPose, type FilmRoadPose } from "./filmRoadConfig";
 
-const FILM_SAMPLE_COUNT = 28;
+const FILM_SAMPLE_COUNT = 30;
 const EDGE_BAND_RATIO = 0.16;
-const BODY_SAMPLE_DEPTHS = [0, 0.18, 0.36, 0.54, 0.7, 0.82, 0.91, 0.97, 1.06];
 
 export interface FilmRoadState {
   reel: number;
@@ -18,83 +17,83 @@ function wrap(value: number) {
   return ((value % 1) + 1) % 1;
 }
 
-function resolveWidth(pose: FilmRoadPose, depth: number) {
-  const taper = Math.pow(Math.max(0, depth), pose.widthPower);
-  return pose.farWidth + (pose.nearWidth - pose.farWidth) * taper;
+function lerp(from: number, to: number, amount: number) {
+  return from + (to - from) * amount;
 }
 
 function resolveY(pose: FilmRoadPose, depth: number) {
-  return pose.horizonY + Math.pow(Math.max(0, depth), pose.depthPower) * pose.verticalReach;
+  return pose.horizonY + Math.pow(Math.max(0, depth), pose.depthPower) * (pose.foregroundY - pose.horizonY);
 }
 
-interface FilmSample {
-  left: number;
-  right: number;
-  innerLeft: number;
-  innerRight: number;
-  y: number;
+function resolveWidthAtY(pose: FilmRoadPose, y: number) {
+  const amount = Math.max(0, Math.min(1, (y - pose.horizonY) / (pose.foregroundY - pose.horizonY)));
+  return lerp(pose.farWidth, pose.nearWidth, amount);
 }
 
-function getFilmSamples(pose: FilmRoadPose) {
-  return BODY_SAMPLE_DEPTHS.map((depth) => {
-    const width = resolveWidth(pose, depth);
-    const left = pose.centerX - width / 2;
-    const right = pose.centerX + width / 2;
-    const edgeWidth = width * EDGE_BAND_RATIO;
-
-    return {
-      left,
-      right,
-      innerLeft: left + edgeWidth,
-      innerRight: right - edgeWidth,
-      y: resolveY(pose, depth),
-    };
-  });
+function getRoadCorners(pose: FilmRoadPose) {
+  return {
+    farLeft: [pose.centerX - pose.farWidth / 2, pose.horizonY],
+    farRight: [pose.centerX + pose.farWidth / 2, pose.horizonY],
+    nearLeft: [pose.centerX - pose.nearWidth / 2, pose.foregroundY],
+    nearRight: [pose.centerX + pose.nearWidth / 2, pose.foregroundY],
+  } as const;
 }
 
-function makeFilmSurface(samples: FilmSample[]) {
-  const left = samples.map(({ left: x, y }) => `${x},${y}`);
-  const right = samples.map(({ right: x, y }) => `${x},${y}`).reverse();
+function getBandCorners(pose: FilmRoadPose) {
+  const { farLeft, farRight, nearLeft, nearRight } = getRoadCorners(pose);
+  const farBandWidth = pose.farWidth * EDGE_BAND_RATIO;
+  const nearBandWidth = pose.nearWidth * EDGE_BAND_RATIO;
 
-  return `M ${left.join(" L ")} L ${right.join(" L ")} Z`;
+  return {
+    leftInnerFar: [farLeft[0] + farBandWidth, farLeft[1]],
+    leftInnerNear: [nearLeft[0] + nearBandWidth, nearLeft[1]],
+    rightInnerFar: [farRight[0] - farBandWidth, farRight[1]],
+    rightInnerNear: [nearRight[0] - nearBandWidth, nearRight[1]],
+  } as const;
 }
 
-function makeEdgeBand(samples: FilmSample[], side: "left" | "right") {
-  const outer = samples.map(({ left, right, y }) => `${side === "left" ? left : right},${y}`);
-  const inner = samples.map(({ innerLeft, innerRight, y }) => `${side === "left" ? innerLeft : innerRight},${y}`).reverse();
-
-  return `M ${outer.join(" L ")} L ${inner.join(" L ")} Z`;
-}
-
-function FilmPatternSample() {
-  return (
-    <g>
-      <path className="film-road__separator" d="M18 0 H82" />
-      <rect className="film-road__sprocket" x="5" y="20" width="8" height="60" rx="1.5" />
-      <rect className="film-road__sprocket" x="87" y="20" width="8" height="60" rx="1.5" />
-    </g>
-  );
+function makePath(points: readonly (readonly [number, number])[]) {
+  return `M ${points.map(([x, y]) => `${x},${y}`).join(" L ")} Z`;
 }
 
 function getFilmShape(pose: FilmRoadPose) {
-  const samples = getFilmSamples(pose);
+  const { farLeft, farRight, nearLeft, nearRight } = getRoadCorners(pose);
+  const { leftInnerFar, leftInnerNear, rightInnerFar, rightInnerNear } = getBandCorners(pose);
 
   return {
-    surface: makeFilmSurface(samples),
-    leftBand: makeEdgeBand(samples, "left"),
-    rightBand: makeEdgeBand(samples, "right"),
+    surface: makePath([farLeft, nearLeft, nearRight, farRight]),
+    leftBand: makePath([farLeft, nearLeft, leftInnerNear, leftInnerFar]),
+    rightBand: makePath([farRight, nearRight, rightInnerNear, rightInnerFar]),
   };
 }
 
-function getSampleTransform(pose: FilmRoadPose, index: number, reel: number) {
+function getPatternGeometry(pose: FilmRoadPose, index: number, reel: number) {
   const depth = wrap(index / FILM_SAMPLE_COUNT + reel) * pose.depthRange;
-  const nextDepth = depth + pose.depthRange / FILM_SAMPLE_COUNT + 0.004;
-  const width = resolveWidth(pose, depth);
-  const height = Math.max(3, resolveY(pose, nextDepth) - resolveY(pose, depth) + 1);
-  const x = pose.centerX - width / 2;
+  const nextDepth = depth + pose.depthRange / FILM_SAMPLE_COUNT;
   const y = resolveY(pose, depth);
+  const width = resolveWidthAtY(pose, y);
+  const edgeWidth = width * EDGE_BAND_RATIO;
+  const gap = Math.max(1.5, edgeWidth * 0.14);
+  const holeWidth = Math.max(3, edgeWidth - gap * 2);
+  const spacing = Math.max(3, resolveY(pose, nextDepth) - y);
+  const holeHeight = Math.max(2.5, spacing * 0.58);
+  const left = pose.centerX - width / 2;
+  const right = pose.centerX + width / 2;
+  const holeY = y + Math.max(1, (spacing - holeHeight) * 0.5);
 
-  return `translate(${x.toFixed(2)} ${y.toFixed(2)}) scale(${(width / 100).toFixed(4)} ${(height / 100).toFixed(4)})`;
+  return {
+    leftX: left + gap,
+    rightX: right - edgeWidth + gap,
+    y: holeY,
+    width: holeWidth,
+    height: holeHeight,
+    separatorStart: left + edgeWidth,
+    separatorEnd: right - edgeWidth,
+  };
+}
+
+function setNumericAttribute(element: SVGElement, name: string, value: number) {
+  element.setAttribute(name, value.toFixed(2));
 }
 
 const initialFilmShape = getFilmShape(getFilmRoadPose(false));
@@ -103,7 +102,9 @@ export const FilmRoad = forwardRef<FilmRoadHandle>(function FilmRoad(_, ref) {
   const surfaceRef = useRef<SVGPathElement>(null);
   const leftBandRef = useRef<SVGPathElement>(null);
   const rightBandRef = useRef<SVGPathElement>(null);
-  const sliceRefs = useRef<SVGGElement[]>([]);
+  const leftSprocketRefs = useRef<SVGRectElement[]>([]);
+  const rightSprocketRefs = useRef<SVGRectElement[]>([]);
+  const separatorRefs = useRef<SVGLineElement[]>([]);
   const compactRef = useRef(false);
   const currentState = useRef<FilmRoadState>({ reel: 0.04 });
 
@@ -120,10 +121,24 @@ export const FilmRoad = forwardRef<FilmRoadHandle>(function FilmRoad(_, ref) {
     leftBand.setAttribute("d", shape.leftBand);
     rightBand.setAttribute("d", shape.rightBand);
 
-    sliceRefs.current.forEach((slice, index) => {
-      if (!slice) return;
+    leftSprocketRefs.current.forEach((leftSprocket, index) => {
+      const rightSprocket = rightSprocketRefs.current[index];
+      const separator = separatorRefs.current[index];
+      if (!leftSprocket || !rightSprocket || !separator) return;
 
-      slice.setAttribute("transform", getSampleTransform(pose, index, state.reel));
+      const pattern = getPatternGeometry(pose, index, state.reel);
+      setNumericAttribute(leftSprocket, "x", pattern.leftX);
+      setNumericAttribute(leftSprocket, "y", pattern.y);
+      setNumericAttribute(leftSprocket, "width", pattern.width);
+      setNumericAttribute(leftSprocket, "height", pattern.height);
+      setNumericAttribute(rightSprocket, "x", pattern.rightX);
+      setNumericAttribute(rightSprocket, "y", pattern.y);
+      setNumericAttribute(rightSprocket, "width", pattern.width);
+      setNumericAttribute(rightSprocket, "height", pattern.height);
+      setNumericAttribute(separator, "x1", pattern.separatorStart);
+      setNumericAttribute(separator, "x2", pattern.separatorEnd);
+      setNumericAttribute(separator, "y1", pattern.y + pattern.height / 2);
+      setNumericAttribute(separator, "y2", pattern.y + pattern.height / 2);
     });
   };
 
@@ -150,14 +165,27 @@ export const FilmRoad = forwardRef<FilmRoadHandle>(function FilmRoad(_, ref) {
           <path ref={leftBandRef} className="film-road__edge-band" d={initialFilmShape.leftBand} />
           <path ref={rightBandRef} className="film-road__edge-band" d={initialFilmShape.rightBand} />
           {Array.from({ length: FILM_SAMPLE_COUNT }, (_, index) => (
-            <g
-              key={index}
-              ref={(element) => {
-                if (element) sliceRefs.current[index] = element;
-              }}
-              className="film-road__slice"
-            >
-              <FilmPatternSample />
+            <g key={index}>
+              <line
+                ref={(element) => {
+                  if (element) separatorRefs.current[index] = element;
+                }}
+                className="film-road__separator"
+              />
+              <rect
+                ref={(element) => {
+                  if (element) leftSprocketRefs.current[index] = element;
+                }}
+                className="film-road__sprocket"
+                rx="1.5"
+              />
+              <rect
+                ref={(element) => {
+                  if (element) rightSprocketRefs.current[index] = element;
+                }}
+                className="film-road__sprocket"
+                rx="1.5"
+              />
             </g>
           ))}
         </g>
