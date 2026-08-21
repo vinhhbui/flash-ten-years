@@ -13,9 +13,3 @@ export interface Submission {
   sourceHash?: string;
   originalFileName?: string;
 }
-
-export interface SubmissionInput {
-  imageData?: unknown;
-  name?: unknown;
-  animation?: unknown;
-}

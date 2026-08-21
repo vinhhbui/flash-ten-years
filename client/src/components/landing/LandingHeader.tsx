@@ -11,7 +11,6 @@ export function LandingHeader() {
         <a href="#memory-cat">MEMORY CAT</a>
         <a href="#final">THE END</a>
       </nav>
-      <Link className="film-nav__action" to="/create">CREATE</Link>
     </header>
   );
 }

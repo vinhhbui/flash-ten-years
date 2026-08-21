@@ -1,5 +1,4 @@
 import type { CSSProperties } from "react";
-import { Link } from "react-router-dom";
 import { spatialScenes, type SpatialNodeConfig, type SpatialSceneConfig } from "./spatialSceneConfig";
 
 interface SpatialNodeProps {
@@ -55,10 +54,6 @@ function SpatialNode({ scene, node }: SpatialNodeProps) {
         )}
       </figure>
     );
-  }
-
-  if (node.type === "action") {
-    return <Link {...attributes} className="spatial-node spatial-node--action" to="/create">CREATE A MEMORY</Link>;
   }
 
   return (

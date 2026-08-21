@@ -4,7 +4,7 @@ export type SpatialSceneTheme = "paper" | "acid" | "pink" | "blue" | "orange" | 
 
 export interface SpatialNodeConfig {
   id: string;
-  type: "label" | "title" | "content" | "object" | "accent" | "artwork" | "action";
+  type: "label" | "title" | "content" | "object" | "accent" | "artwork";
   worldX: number;
   worldY: number;
   localZ: number;
@@ -127,18 +127,7 @@ function createContentScene(seed: ContentSceneSeed, index: number): SpatialScene
     },
   ];
 
-  if (index === contentSceneSeeds.length - 1) {
-    nodes.push({
-      id: "action",
-      type: "action",
-      worldX: supportingArtworkX,
-      worldY: 350,
-      compactWorldX: -220 * direction,
-      compactWorldY: 330,
-      localZ: -420,
-      passDepth: 680,
-    });
-  } else {
+  if (index !== contentSceneSeeds.length - 1) {
     nodes.push({
       id: "artwork-supporting",
       type: "artwork",

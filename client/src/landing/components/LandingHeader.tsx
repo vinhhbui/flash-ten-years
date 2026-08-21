@@ -10,7 +10,6 @@ export function LandingHeader() {
         <a href="#experience">10 STORIES</a>
         <a href="#live-wall">LIVE WALL</a>
       </nav>
-      <Link className="film-road-nav__create" to="/create">CREATE</Link>
     </header>
   );
 }

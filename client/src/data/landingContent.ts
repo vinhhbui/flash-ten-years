@@ -11,7 +11,7 @@ export interface FilmFrameContent {
 
 export interface LandingAction {
   label: string;
-  href: "/create" | "/wall";
+  href: "/wall";
 }
 
 export interface LandingToken {
@@ -186,7 +186,6 @@ export const landingScenes: LandingScene[] = [
     handoff: "YOUR MEMORY",
     handoffType: "cat",
     pinDistance: 2050,
-    primaryAction: { label: "CREATE YOUR MEMORY", href: "/create" },
     secondaryAction: { label: "VIEW LIVE WALL", href: "/wall" },
     frames: [
       frame("cat-empty", "blank", "BLANK", "white"),
@@ -212,7 +211,6 @@ export const landingScenes: LandingScene[] = [
     handoff: "END CREDIT",
     handoffType: "frame",
     final: true,
-    primaryAction: { label: "CREATE YOUR MEMORY", href: "/create" },
     secondaryAction: { label: "VIEW LIVE WALL", href: "/wall" },
     frames: [
       frame("end-one", "text", "FLASH", "acid"),
