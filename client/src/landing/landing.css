@@ -11,7 +11,7 @@
   overflow: clip;
   color: var(--film-paper);
   background: var(--film-ink);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "HT Piet Mono", monospace;
 }
 
 .film-road-experience *,
@@ -36,13 +36,13 @@
 }
 
 .film-road-nav a { pointer-events: auto; }
-.film-road-nav__brand { font-size: 1.04rem; font-weight: 950; letter-spacing: -0.07em; }
+.film-road-nav__brand { font-size: 1.04rem; font-weight: 700; letter-spacing: -0.07em; }
 .film-road-nav__brand span { display: inline-block; margin-left: 2px; color: var(--film-acid); }
-.film-road-nav__links { display: flex; gap: clamp(18px, 3vw, 48px); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.11em; }
+.film-road-nav__links { display: flex; gap: clamp(18px, 3vw, 48px); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.11em; }
 .film-road-nav { transition: opacity 220ms ease, transform 220ms ease; }
 .film-road-nav__links a, .film-road-nav__create { transition: transform 180ms ease, opacity 180ms ease; }
 .film-road-nav__links a:hover, .film-road-nav__create:hover { opacity: 0.66; transform: translateY(-2px); }
-.film-road-nav__create { padding: 9px 13px; border: 1px solid currentColor; border-radius: 999px; font-size: 0.67rem; font-weight: 900; letter-spacing: 0.1em; }
+.film-road-nav__create { padding: 9px 13px; border: 1px solid currentColor; border-radius: 999px; font-size: 0.67rem; font-weight: 700; letter-spacing: 0.1em; }
 
 .film-road-experience.is-wall-active .film-road-nav {
   opacity: 0;
@@ -102,7 +102,7 @@
   z-index: 3;
   color: var(--film-acid);
   font-size: clamp(0.6rem, 0.78vw, 0.82rem);
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 0.15em;
   text-align: center;
   white-space: nowrap;
@@ -112,9 +112,9 @@
   z-index: 4;
   width: min(82vw, 1040px);
   color: var(--film-paper);
-  font-family: Impact, "Arial Black", Arial, sans-serif;
+  font-family: "HT Piet Mono", monospace;
   font-size: clamp(4.4rem, 12.4vw, 13.5rem);
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: -0.095em;
   line-height: 0.72;
   text-align: center;
@@ -140,9 +140,9 @@
 .spatial-node--content h2 {
   margin: 0;
   color: var(--scene-color);
-  font-family: Impact, "Arial Black", Arial, sans-serif;
+  font-family: "HT Piet Mono", monospace;
   font-size: clamp(3.6rem, 8.2vw, 9rem);
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: -0.075em;
   line-height: 0.78;
   text-transform: uppercase;
@@ -153,7 +153,7 @@
   margin: clamp(18px, 2.4vw, 34px) auto 0;
   color: var(--film-paper);
   font-size: clamp(0.82rem, 1.2vw, 1.12rem);
-  font-weight: 800;
+  font-weight: 400;
   letter-spacing: 0.025em;
   line-height: 1.35;
 }
@@ -177,7 +177,7 @@
 }
 
 .spatial-node--artwork span {
-  font-family: Impact, "Arial Black", Arial, sans-serif;
+  font-family: "HT Piet Mono", monospace;
   font-size: clamp(2.5rem, 5vw, 5.8rem);
   letter-spacing: -0.05em;
   line-height: 1;
@@ -188,7 +188,7 @@
   right: 9px;
   bottom: 8px;
   font-size: clamp(0.42rem, 0.58vw, 0.62rem);
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 0.12em;
 }
 
@@ -206,9 +206,9 @@
   width: clamp(58px, 8vw, 132px);
   aspect-ratio: 1;
   place-items: center;
-  font-family: Impact, "Arial Black", Arial, sans-serif;
+  font-family: "HT Piet Mono", monospace;
   font-size: clamp(2.4rem, 5vw, 5.5rem);
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
 }
 
@@ -248,7 +248,7 @@
   background: var(--film-ink);
   color: var(--film-acid);
   font-size: 1rem;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 0.1em;
   pointer-events: auto;
 }
@@ -308,7 +308,7 @@
   background: #11121a;
   color: var(--film-acid);
   font-size: 0.52rem;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 0.12em;
   white-space: nowrap;
 }

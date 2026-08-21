@@ -24,10 +24,10 @@ const bodyFillPath = `<path d="${shapePath}" transform="${transform}" fill="whit
 const guideMaskPath = `<path d="${shapePath}" transform="${transform}" fill="none" stroke="white" stroke-width="${extractionMaskWidth}" stroke-linejoin="round"/>`;
 const printedInstructions = [
   `<g fill="#111111">${markers.map(({ x, y, size }) => `<rect x="${x}" y="${y}" width="${size}" height="${size}"/>`).join("")}</g>`,
-  `<text x="620" y="130" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="#111111">${title}</text>`,
-  `<text x="620" y="184" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#5E5E5E">${subtitle}</text>`,
-  `<text x="620" y="1554" text-anchor="middle" font-family="Arial, sans-serif" font-size="21" fill="#666666">${completionNote}</text>`,
-  `<text x="620" y="1601" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#AAAAAA">${markerNote}</text>`,
+  `<text x="620" y="130" text-anchor="middle" font-family="HT Piet Mono, monospace" font-size="42" font-weight="700" fill="#111111">${title}</text>`,
+  `<text x="620" y="184" text-anchor="middle" font-family="HT Piet Mono, monospace" font-size="24" font-weight="400" fill="#5E5E5E">${subtitle}</text>`,
+  `<text x="620" y="1554" text-anchor="middle" font-family="HT Piet Mono, monospace" font-size="21" font-weight="300" fill="#666666">${completionNote}</text>`,
+  `<text x="620" y="1601" text-anchor="middle" font-family="HT Piet Mono, monospace" font-size="16" font-weight="300" fill="#AAAAAA">${markerNote}</text>`,
 ].join("\n");
 
 await mkdir(templateDirectory, { recursive: true });

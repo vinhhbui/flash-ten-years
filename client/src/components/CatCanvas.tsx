@@ -212,8 +212,9 @@ const CatCanvas = forwardRef<CatCanvasHandle, CatCanvasProps>(function CatCanvas
           y={label.y}
           text={label.text}
           fill={label.color}
-          fontFamily="Arial Rounded MT Bold, Arial, sans-serif"
+          fontFamily="HT Piet Mono"
           fontSize={25}
+          fontStyle="bold"
           draggable
           onMouseDown={(event) => { event.cancelBubble = true; }}
           onTouchStart={(event) => { event.cancelBubble = true; }}

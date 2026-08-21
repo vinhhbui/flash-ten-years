@@ -11,7 +11,7 @@
 
   <text x="105" y="22"
         text-anchor="middle"
-        font-family="Arial, DejaVu Sans, sans-serif"
+        font-family="HT Piet Mono, monospace"
         font-size="7"
         font-weight="700"
         fill="#111">
@@ -20,8 +20,9 @@
 
   <text x="105" y="31"
         text-anchor="middle"
-        font-family="Arial, DejaVu Sans, sans-serif"
+        font-family="HT Piet Mono, monospace"
         font-size="3.8"
+        font-weight="400"
         fill="#555">
     Tô màu / trang trí BÊN TRONG khung nét đứt
   </text>
@@ -39,16 +40,18 @@
 
   <text x="105" y="263"
         text-anchor="middle"
-        font-family="Arial, DejaVu Sans, sans-serif"
+        font-family="HT Piet Mono, monospace"
         font-size="3.6"
+        font-weight="300"
         fill="#666">
     Sau khi hoàn thành, đưa tờ giấy cho staff để scan.
   </text>
 
   <text x="105" y="271"
         text-anchor="middle"
-        font-family="Arial, DejaVu Sans, sans-serif"
+        font-family="HT Piet Mono, monospace"
         font-size="2.7"
+        font-weight="300"
         fill="#999">
     Không tô lên 4 ô vuông nhỏ ở các góc - dùng để căn chỉnh khi scan.
   </text>
