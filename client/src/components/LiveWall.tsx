@@ -7,7 +7,7 @@ import type { Submission } from "../types/submission";
 type WallCat = Submission & { position: { x: number; y: number }; isNew?: boolean };
 
 interface LiveWallProps {
-  variant?: "page" | "embedded";
+  variant?: "page" | "embedded" | "destination";
 }
 
 interface WallBounds {
@@ -24,6 +24,26 @@ function safePosition({ width, height }: WallBounds): { x: number; y: number } {
   return {
     x: Math.round(minimumX + Math.random() * (maximumX - minimumX)),
     y: Math.round(minimumY + Math.random() * (maximumY - minimumY)),
+  };
+}
+
+function seededUnit(value: string, salt: number) {
+  let hash = salt;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = Math.imul(hash ^ value.charCodeAt(index), 16777619);
+  }
+  return (hash >>> 0) / 4294967295;
+}
+
+function destinationPosition(submission: Submission, { width, height }: WallBounds) {
+  const minimumX = Math.max(18, width * 0.04);
+  const minimumY = Math.min(132, Math.max(78, height * 0.17));
+  const maximumX = Math.max(minimumX, width - Math.max(110, width * 0.13));
+  const maximumY = Math.max(minimumY, height - Math.max(145, height * 0.18));
+
+  return {
+    x: Math.round(minimumX + seededUnit(submission.id, 2166136261) * (maximumX - minimumX)),
+    y: Math.round(minimumY + seededUnit(submission.id, 709607) * (maximumY - minimumY)),
   };
 }
 
@@ -46,8 +66,14 @@ export default function LiveWall({ variant = "page" }: LiveWallProps) {
 
   const addCat = useCallback(async (submission: Submission, isNew = false) => {
     await preload(submission.image);
-    setCats((current) => current.some((cat) => cat.id === submission.id) ? current : [...current, { ...submission, position: safePosition(boundsRef.current), isNew }]);
-  }, []);
+    setCats((current) => {
+      if (current.some((cat) => cat.id === submission.id)) return current;
+      const position = variant === "destination"
+        ? destinationPosition(submission, boundsRef.current)
+        : safePosition(boundsRef.current);
+      return [...current, { ...submission, position, isNew }];
+    });
+  }, [variant]);
 
   useLayoutEffect(() => {
     const wall = wallRef.current;
@@ -96,6 +122,7 @@ export default function LiveWall({ variant = "page" }: LiveWallProps) {
           viewportWidth={bounds.width}
           viewportHeight={bounds.height}
           isNew={cat.isNew}
+          motion={variant === "destination" ? "pinned" : "free"}
         />
       ))}
     </div>
