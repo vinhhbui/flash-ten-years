@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import ArtworkSprite from "./ArtworkSprite";
 import { getSubmissions, serverUrl } from "../lib/api";
 import { wallSocket } from "../lib/socket";
@@ -6,10 +6,24 @@ import type { Submission } from "../types/submission";
 
 type WallCat = Submission & { position: { x: number; y: number }; isNew?: boolean };
 
-function safePosition(): { x: number; y: number } {
+interface LiveWallProps {
+  variant?: "page" | "embedded";
+}
+
+interface WallBounds {
+  width: number;
+  height: number;
+}
+
+function safePosition({ width, height }: WallBounds): { x: number; y: number } {
+  const minimumX = 24;
+  const minimumY = Math.min(120, Math.max(30, height * 0.18));
+  const maximumX = Math.max(minimumX, width - 185);
+  const maximumY = Math.max(minimumY, height - 205);
+
   return {
-    x: Math.max(24, Math.round(Math.random() * Math.max(1, window.innerWidth - 185))),
-    y: Math.max(30, Math.round(Math.random() * Math.max(1, window.innerHeight - 205))),
+    x: Math.round(minimumX + Math.random() * (maximumX - minimumX)),
+    y: Math.round(minimumY + Math.random() * (maximumY - minimumY)),
   };
 }
 
@@ -22,14 +36,34 @@ function preload(image: string) {
   });
 }
 
-export default function LiveWall() {
+export default function LiveWall({ variant = "page" }: LiveWallProps) {
+  const wallRef = useRef<HTMLDivElement>(null);
+  const boundsRef = useRef<WallBounds>({ width: window.innerWidth, height: window.innerHeight });
+  const [bounds, setBounds] = useState<WallBounds>(boundsRef.current);
   const [cats, setCats] = useState<WallCat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
   const addCat = useCallback(async (submission: Submission, isNew = false) => {
     await preload(submission.image);
-    setCats((current) => current.some((cat) => cat.id === submission.id) ? current : [...current, { ...submission, position: safePosition(), isNew }]);
+    setCats((current) => current.some((cat) => cat.id === submission.id) ? current : [...current, { ...submission, position: safePosition(boundsRef.current), isNew }]);
+  }, []);
+
+  useLayoutEffect(() => {
+    const wall = wallRef.current;
+    if (!wall) return undefined;
+
+    const updateBounds = () => {
+      const nextBounds = { width: wall.clientWidth, height: wall.clientHeight };
+      if (!nextBounds.width || !nextBounds.height) return;
+      boundsRef.current = nextBounds;
+      setBounds(nextBounds);
+    };
+    const observer = new ResizeObserver(updateBounds);
+    observer.observe(wall);
+    updateBounds();
+
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -49,12 +83,21 @@ export default function LiveWall() {
   }, [addCat]);
 
   return (
-    <section className="live-wall">
+    <div ref={wallRef} className={`live-wall live-wall--${variant}`}>
       <header className="wall-header"><span>FLASH 10</span><h1>MEMORIES, ALIVE</h1><p>{cats.length} memory cats</p></header>
       {isLoading && <p className="wall-status">Loading the wall...</p>}
       {error && <p className="wall-status error">{error}</p>}
       {!isLoading && !error && cats.length === 0 && <p className="wall-status">Your first cat is waiting to come alive.</p>}
-      {cats.map((cat) => <ArtworkSprite key={cat.id} submission={cat} position={cat.position} isNew={cat.isNew} />)}
-    </section>
+      {cats.map((cat) => (
+        <ArtworkSprite
+          key={cat.id}
+          submission={cat}
+          position={cat.position}
+          viewportWidth={bounds.width}
+          viewportHeight={bounds.height}
+          isNew={cat.isNew}
+        />
+      ))}
+    </div>
   );
 }

@@ -39,9 +39,15 @@
 .film-road-nav__brand { font-size: 1.04rem; font-weight: 950; letter-spacing: -0.07em; }
 .film-road-nav__brand span { display: inline-block; margin-left: 2px; color: var(--film-acid); }
 .film-road-nav__links { display: flex; gap: clamp(18px, 3vw, 48px); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.11em; }
+.film-road-nav { transition: opacity 220ms ease, transform 220ms ease; }
 .film-road-nav__links a, .film-road-nav__create { transition: transform 180ms ease, opacity 180ms ease; }
 .film-road-nav__links a:hover, .film-road-nav__create:hover { opacity: 0.66; transform: translateY(-2px); }
 .film-road-nav__create { padding: 9px 13px; border: 1px solid currentColor; border-radius: 999px; font-size: 0.67rem; font-weight: 900; letter-spacing: 0.1em; }
+
+.film-road-experience.is-wall-active .film-road-nav {
+  opacity: 0;
+  transform: translateY(-100%);
+}
 
 .landing-scroll-track { position: relative; }
 
@@ -116,6 +122,83 @@
   white-space: nowrap;
 }
 
+.depth-scene { --scene-color: var(--film-paper); }
+.depth-scene[data-theme="acid"] { --scene-color: var(--film-acid); }
+.depth-scene[data-theme="pink"] { --scene-color: var(--film-pink); }
+.depth-scene[data-theme="blue"] { --scene-color: #98a0ff; }
+.depth-scene[data-theme="orange"] { --scene-color: var(--film-orange); }
+.depth-scene[data-theme="lilac"] { --scene-color: var(--film-lilac); }
+.depth-scene .spatial-node--label { color: var(--scene-color); }
+
+.spatial-node--content {
+  z-index: 4;
+  width: min(60vw, 700px);
+  color: var(--film-paper);
+  text-align: center;
+}
+
+.spatial-node--content h2 {
+  margin: 0;
+  color: var(--scene-color);
+  font-family: Impact, "Arial Black", Arial, sans-serif;
+  font-size: clamp(3.6rem, 8.2vw, 9rem);
+  font-weight: 900;
+  letter-spacing: -0.075em;
+  line-height: 0.78;
+  text-transform: uppercase;
+}
+
+.spatial-node--content p {
+  width: min(78%, 500px);
+  margin: clamp(18px, 2.4vw, 34px) auto 0;
+  color: var(--film-paper);
+  font-size: clamp(0.82rem, 1.2vw, 1.12rem);
+  font-weight: 800;
+  letter-spacing: 0.025em;
+  line-height: 1.35;
+}
+
+.spatial-node--artwork {
+  z-index: 5;
+  display: grid;
+  width: clamp(148px, 18vw, 270px);
+  place-items: center;
+  overflow: hidden;
+  border: clamp(5px, 0.7vw, 10px) solid var(--scene-color);
+  background: var(--film-ink);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  color: var(--scene-color);
+}
+
+.spatial-node--artwork.is-placeholder {
+  background:
+    linear-gradient(135deg, transparent 0 48%, color-mix(in srgb, var(--scene-color) 24%, transparent) 49% 51%, transparent 52%),
+    var(--film-ink);
+}
+
+.spatial-node--artwork span {
+  font-family: Impact, "Arial Black", Arial, sans-serif;
+  font-size: clamp(2.5rem, 5vw, 5.8rem);
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.spatial-node--artwork small {
+  position: absolute;
+  right: 9px;
+  bottom: 8px;
+  font-size: clamp(0.42rem, 0.58vw, 0.62rem);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.spatial-node--artwork img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .spatial-node--object,
 .spatial-node--accent {
   z-index: 5;
@@ -136,10 +219,6 @@
 .spatial-node--star { width: clamp(70px, 9vw, 150px); background: var(--film-pink); clip-path: polygon(50% 0, 61% 37%, 100% 50%, 61% 63%, 50% 100%, 39% 63%, 0 50%, 39% 37%); }
 
 .depth-scene--flash10 .spatial-node--title { color: var(--film-paper); }
-.depth-scene--ten-years .spatial-node--title { color: var(--film-acid); }
-.depth-scene--connected .spatial-node--title { color: var(--film-paper); }
-.depth-scene--flashback .spatial-node--title { color: var(--film-pink); }
-.depth-scene--memory .spatial-node--title { color: var(--film-paper); font-size: clamp(3.8rem, 10.2vw, 11.5rem); white-space: normal; }
 
 .film-road {
   position: absolute;
@@ -174,17 +253,107 @@
   pointer-events: auto;
 }
 
+.landing-wall-section {
+  position: relative;
+  z-index: 40;
+  width: 100%;
+  height: 100svh;
+  min-height: 560px;
+  overflow: hidden;
+  isolation: isolate;
+  background: #090a10;
+}
+
+.landing-wall-frame {
+  position: absolute;
+  inset: clamp(6px, 1vw, 14px);
+  overflow: hidden;
+  border: 1px solid rgba(246, 240, 231, 0.4);
+  border-radius: clamp(15px, 2vw, 28px);
+  background: #11121a;
+  box-shadow: inset 0 0 0 1px #000, 0 28px 80px rgba(0, 0, 0, 0.48);
+}
+
+.landing-wall-frame::before,
+.landing-wall-frame::after {
+  position: absolute;
+  z-index: 2;
+  right: 22px;
+  left: 22px;
+  height: 10px;
+  background: repeating-linear-gradient(90deg, var(--film-paper) 0 20px, transparent 20px 34px);
+  content: "";
+  opacity: 0.92;
+}
+
+.landing-wall-frame::before { top: 8px; }
+.landing-wall-frame::after { bottom: 8px; }
+
+.landing-wall-frame__screen {
+  position: absolute;
+  inset: 25px 14px;
+  overflow: hidden;
+  border: 2px solid var(--film-paper);
+  border-radius: clamp(9px, 1.2vw, 18px);
+  background: var(--film-paper);
+}
+
+.landing-wall-frame__label {
+  position: absolute;
+  z-index: 3;
+  right: 50%;
+  bottom: 4px;
+  padding: 0 9px;
+  transform: translateX(50%);
+  background: #11121a;
+  color: var(--film-acid);
+  font-size: 0.52rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+}
+
+.landing-wall-frame__screen .live-wall {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 18% 20%, rgba(217, 255, 50, 0.68) 0 5%, transparent 24%),
+    radial-gradient(circle at 82% 74%, rgba(255, 157, 211, 0.74) 0 4%, transparent 25%),
+    linear-gradient(135deg, #ffebe2, #efeaff 50%, #dff8ed);
+}
+
+.landing-wall-frame__screen .wall-header {
+  padding: clamp(22px, 3vw, 42px);
+}
+
+.landing-wall-frame__screen .wall-header h1 {
+  font-size: clamp(1.8rem, 5vw, 5.4rem);
+  line-height: 0.84;
+}
+
 @media (max-width: 767px) {
   .landing-master-stage { min-height: 500px; perspective: 900px; perspective-origin: 50% 48%; }
   .film-road-nav { padding: 16px 17px; }
   .film-road-nav__links { display: none; }
   .film-road-nav__create { padding: 8px 10px; }
-  .spatial-node--title { width: 94vw; font-size: clamp(5.2rem, 25vw, 9rem); line-height: 0.75; }
-  .depth-scene--memory .spatial-node--title { font-size: clamp(5rem, 23vw, 9rem); line-height: 0.82; }
+  .spatial-node--title { width: 94vw; font-size: clamp(4.6rem, 22vw, 8rem); line-height: 0.75; }
   .spatial-node--label { font-size: 0.57rem; }
+  .spatial-node--content { width: 86vw; }
+  .spatial-node--content h2 { font-size: clamp(4rem, 18vw, 7rem); line-height: 0.8; }
+  .spatial-node--content p { width: 88%; margin-top: 15px; font-size: 0.74rem; }
+  .spatial-node--artwork { width: clamp(92px, 26vw, 120px); border-width: 5px; }
+  .spatial-node--artwork span { font-size: clamp(2.1rem, 10vw, 3.5rem); }
+  .spatial-node--artwork small { font-size: 0.4rem; }
   .spatial-node--object, .spatial-node--accent { width: clamp(52px, 15vw, 92px); font-size: clamp(2.1rem, 8vw, 3.4rem); }
   .spatial-node--frame { width: clamp(70px, 18vw, 112px); }
   .spatial-node--action { min-height: 54px; padding: 12px 16px; font-size: 0.85rem; }
+  .landing-wall-section { min-height: 520px; }
+  .landing-wall-frame { inset: 4px; border-radius: 15px; }
+  .landing-wall-frame::before, .landing-wall-frame::after { right: 14px; left: 14px; height: 8px; background-size: auto; }
+  .landing-wall-frame__screen { inset: 21px 8px; border-radius: 9px; }
+  .landing-wall-frame__label { bottom: 3px; font-size: 0.4rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -196,8 +365,9 @@
   .is-reduced-motion .depth-scene--ten-years, .is-reduced-motion .depth-scene--connected { background: #25254b; }
   .is-reduced-motion .spatial-node { position: static; visibility: visible !important; opacity: 1 !important; transform: none !important; }
   .is-reduced-motion .spatial-node--label { order: 1; }
-  .is-reduced-motion .spatial-node--title { order: 2; width: 100%; }
-  .is-reduced-motion .spatial-node--object { order: 3; }
+  .is-reduced-motion .spatial-node--title, .is-reduced-motion .spatial-node--content { order: 2; width: 100%; }
+  .is-reduced-motion .spatial-node--object, .is-reduced-motion .spatial-node--artwork { order: 3; }
+  .is-reduced-motion .spatial-node--artwork { width: min(62vw, 290px); }
   .is-reduced-motion .spatial-node--accent { display: none; }
   .is-reduced-motion .spatial-node--action { order: 4; }
   .is-reduced-motion .film-road { position: sticky; z-index: 3; top: 0; height: 100svh; margin-bottom: -100svh; opacity: 0.42; }

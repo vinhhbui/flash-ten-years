@@ -3,6 +3,8 @@ interface SpatialNode {
   sceneZ: number;
   worldX: number;
   worldY: number;
+  compactWorldX: number | null;
+  compactWorldY: number | null;
   localZ: number;
   rotation: number;
   passDepth: number;
@@ -42,6 +44,8 @@ export function createSpatialProjector({ stage, compact }: SpatialProjectorOptio
       sceneZ: Number(scene.dataset.worldZ),
       worldX: Number(element.dataset.worldX),
       worldY: Number(element.dataset.worldY),
+      compactWorldX: element.dataset.compactWorldX === undefined ? null : Number(element.dataset.compactWorldX),
+      compactWorldY: element.dataset.compactWorldY === undefined ? null : Number(element.dataset.compactWorldY),
       localZ: Number(element.dataset.localZ),
       rotation: Number(element.dataset.rotation),
       passDepth: Number(element.dataset.passDepth),
@@ -70,8 +74,10 @@ export function createSpatialProjector({ stage, compact }: SpatialProjectorOptio
       const revealRange = isFirstScene ? firstSceneRevealRange : futureSceneRevealRange;
       const farHaze = clamp((revealDistance - sceneDistance) / revealRange, 0, 1);
       const opacity = pastCamera ? 0 : farHaze;
-      const x = vanishingX + node.worldX * scale;
-      const y = vanishingY + node.worldY * scale;
+      const worldX = compact ? node.compactWorldX ?? node.worldX * 0.32 : node.worldX;
+      const worldY = compact ? node.compactWorldY ?? node.worldY : node.worldY;
+      const x = vanishingX + worldX * scale;
+      const y = vanishingY + worldY * scale;
 
       node.element.style.visibility = opacity > 0.01 ? "visible" : "hidden";
       node.element.style.opacity = opacity.toFixed(3);

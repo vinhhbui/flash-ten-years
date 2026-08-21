@@ -49,11 +49,22 @@ export function createMasterTimeline({ track, stage, film, compact }: CreateMast
 
   Object.entries(masterTimelineLabels).forEach(([label, position]) => master.addLabel(label, position));
 
-  master
-    .set(background, { backgroundColor: "#10111b" }, 0)
-    .to(background, { backgroundColor: "#25254b", duration: 24 }, 26)
-    .to(background, { backgroundColor: "#10111b", duration: 28 }, 66)
-    .to(camera, { z: CAMERA_END_Z, duration: MASTER_TIMELINE_DURATION }, 0);
+  const backgroundTransitions = [
+    { color: "#25254b", position: 12 },
+    { color: "#221426", position: 23 },
+    { color: "#10111b", position: 34 },
+    { color: "#17203a", position: 45 },
+    { color: "#281814", position: 56 },
+    { color: "#211936", position: 67 },
+    { color: "#1c2412", position: 78 },
+    { color: "#10111b", position: 89 },
+  ];
+
+  master.set(background, { backgroundColor: "#10111b" }, 0);
+  backgroundTransitions.forEach(({ color, position }) => {
+    master.to(background, { backgroundColor: color, duration: 7 }, position);
+  });
+  master.to(camera, { z: CAMERA_END_Z, duration: MASTER_TIMELINE_DURATION }, 0);
 
   master.eventCallback("onUpdate", renderWorld);
   renderWorld();

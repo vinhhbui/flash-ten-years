@@ -8,10 +8,18 @@ import { resolveWallVisual } from "../visuals/resolveWallVisual";
 interface ArtworkSpriteProps {
   submission: Submission;
   position: { x: number; y: number };
+  viewportWidth?: number;
+  viewportHeight?: number;
   isNew?: boolean;
 }
 
-export default function ArtworkSprite({ submission, position, isNew = false }: ArtworkSpriteProps) {
+export default function ArtworkSprite({
+  submission,
+  position,
+  viewportWidth = window.innerWidth,
+  viewportHeight = window.innerHeight,
+  isNew = false,
+}: ArtworkSpriteProps) {
   const spriteRef = useRef<HTMLDivElement>(null);
   const { frame, animation } = resolveWallVisual(submission);
 
@@ -23,8 +31,8 @@ export default function ArtworkSprite({ submission, position, isNew = false }: A
       stopAnimation = animation.run({
         element,
         origin: position,
-        viewportWidth: window.innerWidth,
-        viewportHeight: window.innerHeight,
+        viewportWidth,
+        viewportHeight,
       });
     };
     const entrance = gsap.timeline();
@@ -41,7 +49,7 @@ export default function ArtworkSprite({ submission, position, isNew = false }: A
       entrance.kill();
       stopAnimation?.();
     };
-  }, [animation, isNew, position]);
+  }, [animation, isNew, position, viewportHeight, viewportWidth]);
 
   const imageUrl = submission.image.startsWith("http") ? submission.image : `${serverUrl}${submission.image}`;
   const frameStyle = {
