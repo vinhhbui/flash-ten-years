@@ -20,14 +20,18 @@ interface CreateMasterTimelineArgs {
 
 export function createMasterTimeline({ track, stage, film, compact }: CreateMasterTimelineArgs) {
   const background = stage.querySelector<HTMLElement>("[data-stage-background]");
+  const destinationWall = stage.querySelector<HTMLElement>("[data-destination-wall]");
+  const experienceRoot = stage.closest<HTMLElement>(".film-road-experience");
   if (!background) return null;
 
   const projector = createSpatialProjector({ stage, compact });
   const camera = { z: CAMERA_START_Z };
   const cameraTravel = CAMERA_END_Z - CAMERA_START_Z;
   const renderWorld = () => {
+    const progress = (camera.z - CAMERA_START_Z) / cameraTravel;
     projector.render(camera.z);
-    film.setState(getFilmRoadState((camera.z - CAMERA_START_Z) / cameraTravel));
+    film.setState(getFilmRoadState(progress));
+    experienceRoot?.classList.toggle("is-wall-active", progress > 0.92);
   };
 
   const master = gsap.timeline({
@@ -64,9 +68,48 @@ export function createMasterTimeline({ track, stage, film, compact }: CreateMast
   backgroundTransitions.forEach(({ color, position }) => {
     master.to(background, { backgroundColor: color, duration: 7 }, position);
   });
+
+  if (destinationWall) {
+    master.set(destinationWall, {
+      autoAlpha: 0,
+      scale: compact ? 0.16 : 0.12,
+      y: compact ? "17vh" : "20vh",
+      rotationX: -8,
+      transformOrigin: "50% 100%",
+      filter: "blur(2px)",
+    }, 0);
+
+    master.to(destinationWall, {
+      autoAlpha: 0.72,
+      scale: compact ? 0.34 : 0.3,
+      y: compact ? "12vh" : "14vh",
+      rotationX: -6,
+      filter: "blur(1.4px)",
+      duration: 4,
+    }, 90);
+
+    master.to(destinationWall, {
+      autoAlpha: 1,
+      scale: compact ? 0.74 : 0.7,
+      y: "4vh",
+      rotationX: -2,
+      filter: "blur(0.5px)",
+      duration: 4,
+    }, 94);
+
+    master.to(destinationWall, {
+      scale: 1,
+      y: "0vh",
+      rotationX: 0,
+      filter: "blur(0px)",
+      duration: 2,
+    }, 98);
+  }
+
   master.to(camera, { z: CAMERA_END_Z, duration: MASTER_TIMELINE_DURATION }, 0);
 
   master.eventCallback("onUpdate", renderWorld);
+  master.eventCallback("onReverseComplete", () => experienceRoot?.classList.remove("is-wall-active"));
   renderWorld();
 
   return master;
