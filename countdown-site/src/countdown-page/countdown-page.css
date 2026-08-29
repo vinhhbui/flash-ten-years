@@ -1,0 +1,482 @@
+.countdown-experience {
+  --page-transition-duration: 1400ms;
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: #000;
+}
+
+.countdown-experience__track {
+  display: flex;
+  width: 100%;
+  height: 200%;
+  flex-direction: column;
+  transform: translate3d(0, 0, 0);
+  transition: transform var(--page-transition-duration) cubic-bezier(0.76, 0, 0.24, 1);
+  will-change: transform;
+}
+
+.countdown-experience[data-landing-active="true"] .countdown-experience__track {
+  transform: translate3d(0, -50%, 0);
+}
+
+.countdown-page {
+  --countdown-content-rotation: 0deg;
+  --countdown-number-size: clamp(2.15rem, 6vw, 6.5rem);
+  --countdown-label-size: clamp(0.44rem, 0.72vw, 0.72rem);
+  position: relative;
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  min-height: 100vh;
+  min-height: 100svh;
+  height: 50%;
+  flex: 0 0 50%;
+  place-items: center;
+  overflow: hidden;
+  isolation: isolate;
+  background: #000;
+  color: #000;
+  font-family: "HT Piet Mono", monospace;
+}
+
+.countdown-page::before {
+  position: absolute;
+  z-index: 0;
+  inset:
+    env(safe-area-inset-top, 0px)
+    env(safe-area-inset-right, 0px)
+    env(safe-area-inset-bottom, 0px)
+    env(safe-area-inset-left, 0px);
+  background: #fff;
+  content: "";
+  pointer-events: none;
+}
+
+.countdown-experience[data-last-thirty="true"] .countdown-page {
+  background: #000;
+}
+
+.countdown-experience[data-last-thirty="true"] .countdown-page::before {
+  background: #000;
+}
+
+.countdown-experience::before,
+.countdown-experience::after {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  width: 100%;
+  height: 5vh;
+  background: #000;
+  content: "";
+  pointer-events: none;
+  transition: transform 667ms cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.countdown-experience::before {
+  top: 0;
+  height: max(5vh, env(safe-area-inset-top, 0px));
+}
+
+.countdown-experience::after {
+  bottom: 0;
+  height: max(5vh, env(safe-area-inset-bottom, 0px));
+}
+
+.countdown-experience[data-final-seconds="true"]::before {
+  transform: translateY(-100%);
+}
+
+.countdown-experience[data-final-seconds="true"]::after {
+  transform: translateY(100%);
+}
+
+.save-date-button {
+  position: fixed;
+  z-index: 10;
+  left: 50%;
+  bottom: max(5vh, env(safe-area-inset-bottom, 0px));
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.15rem;
+  border: 1px solid #000;
+  border-radius: 0.25rem;
+  background: #f9db5a;
+  box-shadow: 0 0.25rem 1rem rgb(0 0 0 / 22%);
+  color: #000;
+  cursor: pointer;
+  font: inherit;
+  font-size: clamp(0.68rem, 0.9vw, 0.82rem);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-decoration: none;
+  text-transform: uppercase;
+  transform: translate(-50%, 50%);
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.save-date-button:hover {
+  border-color: #000;
+  background: #f9db5a;
+  transform: translate(-50%, calc(50% - 2px));
+}
+
+.save-date-button:active {
+  transform: translate(-50%, 50%);
+}
+
+.save-date-button:focus-visible {
+  outline: 2px solid #000;
+  outline-offset: 3px;
+}
+
+.countdown-experience[data-final-seconds="true"] .save-date-button {
+  pointer-events: none;
+  transform: translate(-50%, calc(150% + 5vh));
+  transition: transform 667ms cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.countdown {
+  --countdown-scale: 1;
+  --countdown-unscaled-height: 100svh;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: var(--countdown-layout-width, max-content);
+  height: var(--countdown-unscaled-height);
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-variant-numeric: tabular-nums;
+  transform: rotate(var(--countdown-orientation-angle, 0deg)) scale(var(--countdown-scale));
+  transform-origin: center;
+  white-space: nowrap;
+}
+
+.countdown[data-departure-phase="exiting"] {
+  justify-content: flex-end;
+}
+
+.countdown-segment {
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  width: auto;
+  height: 100%;
+  flex: none;
+  align-items: center;
+  padding-inline: clamp(0.25rem, 0.65vw, 0.65rem);
+}
+
+.countdown-segment--exiting {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  width: auto;
+  animation: unit-reel-exit 1.2s cubic-bezier(0.65, 0, 0.35, 1) both;
+  pointer-events: none;
+}
+
+.countdown__accessible-value {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.film-roll {
+  --film-roll-frame-fallback: var(--countdown-number-size);
+  --film-roll-end-buffer: max(
+    calc(
+      var(--film-roll-frame-height, var(--film-roll-frame-fallback))
+      + var(--film-roll-frame-height, var(--film-roll-frame-fallback))
+    ),
+    32%
+  );
+  position: relative;
+  z-index: 1;
+  width: calc(2ch + 60px);
+  /*
+   * Keep both physical ends of the film outside the viewport. The buffer is
+   * symmetric because the roll rotates around its current-time frame.
+   */
+  height: calc(100% + var(--film-roll-end-buffer));
+  flex: none;
+  font-size: var(--countdown-number-size);
+  overflow: hidden;
+  contain: layout style;
+  transform: rotate(var(--film-roll-angle, 0deg));
+  transform-origin: center;
+  transition: transform 667ms cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.film-roll[data-unit="DAYS"] .countdown-film-frame::after {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  box-sizing: border-box;
+  border-inline: 1px solid #000;
+  content: "";
+  pointer-events: none;
+}
+
+.film-roll[data-unit="DAYS"] .countdown-film-frame--roll-end::after {
+  border-bottom: 1px solid #000;
+}
+
+.film-roll[data-angle="0"] {
+  transform: none;
+}
+
+.film-roll[data-angle="0"] .film-frame__geometry {
+  shape-rendering: geometricPrecision;
+}
+
+.film-roll[data-unit="DAYS"] .film-frame {
+  color: #ea75b6;
+}
+
+.film-roll[data-unit="HOURS"] .film-frame {
+  color: #37a9ef;
+}
+
+.film-roll[data-unit="MINUTES"] .film-frame {
+  color: #4ad181;
+}
+
+.film-roll[data-unit="SECONDS"] .film-frame {
+  color: #f7634b;
+}
+
+.film-roll[data-unit="DAYS"] .film-roll__content {
+  color: #f7634b;
+}
+
+.film-roll[data-unit="HOURS"] .film-roll__content {
+  color: #4ad181;
+}
+
+.film-roll[data-unit="MINUTES"] .film-roll__content {
+  color: #37a9ef;
+}
+
+.film-roll[data-unit="SECONDS"] .film-roll__content {
+  color: #ea75b6;
+}
+
+.film-roll[data-unit="DAYS"] .film-roll__label {
+  color: #4ad181;
+}
+
+.film-roll[data-unit="HOURS"] .film-roll__label {
+  color: #f7634b;
+}
+
+.film-roll[data-unit="MINUTES"] .film-roll__label {
+  color: #ea75b6;
+}
+
+.film-roll[data-unit="SECONDS"] .film-roll__label {
+  color: #37a9ef;
+}
+
+.film-roll[data-unit="DAYS"] .film-frame__content {
+  background: #f9f6d7;
+}
+
+.film-roll[data-unit="HOURS"] .film-frame__content {
+  background: #ffe9fe;
+}
+
+.film-roll[data-unit="MINUTES"] .film-frame__content {
+  background: #ffe0c2;
+}
+
+.film-roll[data-unit="SECONDS"] .film-frame__content {
+  background: #daf9df;
+}
+
+/* Keep the physical film rail colored while desaturating only inactive frames. */
+.film-roll .countdown-film-frame--muted .film-frame__content {
+  background: #e8e8e8;
+}
+
+.film-roll .countdown-film-frame--muted .film-roll__content,
+.film-roll .countdown-film-frame--muted .film-roll__label {
+  color: #858585;
+}
+
+.film-roll__track {
+  --film-roll-offset: 0%;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  transform: translateY(calc(-50% - var(--film-roll-offset)));
+}
+
+.film-roll__frame,
+.film-roll__spacer {
+  width: 100%;
+  flex: none;
+}
+
+.film-roll__frame {
+  /* Cover fractional-pixel seams where separately rasterized SVG frames meet. */
+  background: linear-gradient(
+    to bottom,
+    currentColor 0 1px,
+    transparent 1px calc(100% - 1px),
+    currentColor calc(100% - 1px) 100%
+  );
+}
+
+.film-roll__spacer {
+  height: var(
+    --film-roll-frame-height,
+    calc(var(--countdown-number-size) * 0.82 + var(--countdown-label-size) + clamp(2rem, 3.5vw, 3.5rem) + 10px)
+  );
+}
+
+.film-frame.countdown-film-frame .film-roll__content {
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.15rem, 0.35vw, 0.3rem);
+  padding: 0;
+  transform: rotate(var(--countdown-content-rotation));
+  transform-origin: center;
+}
+
+.film-roll__value,
+.countdown-colon {
+  font-weight: 300;
+  line-height: 0.82;
+  letter-spacing: -0.08em;
+}
+
+.film-roll__value {
+  position: static;
+  display: block;
+  width: auto;
+  font-size: 0.84em;
+  text-align: center;
+}
+
+.countdown-film-frame--last-ten .film-roll__value {
+  font-size: 1.12em;
+}
+
+.film-roll__label {
+  position: static;
+  display: block;
+  margin: 0;
+  font-size: var(--countdown-label-size);
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  line-height: 1;
+  text-indent: 0.15em;
+  transition: font-size 667ms ease-in-out;
+  white-space: nowrap;
+}
+
+.countdown-colon {
+  position: absolute;
+  z-index: 5;
+  top: 50%;
+  left: 0;
+  display: block;
+  color: #f9db5a;
+  width: 0.45em;
+  margin: 0;
+  font-size: var(--countdown-number-size);
+  text-align: center;
+  transform: translate(-50%, -50%) rotate(var(--countdown-content-rotation));
+  animation: colon-blink 1s steps(1, end) infinite;
+  pointer-events: none;
+}
+
+@keyframes unit-reel-exit {
+  from { transform: translateY(0); }
+  to { transform: translateY(-100%); }
+}
+
+@keyframes colon-blink {
+  0%, 45%, 100% { opacity: 1; }
+  50%, 95% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .countdown-experience__track {
+    transition: none;
+  }
+
+  .countdown-experience::before,
+  .countdown-experience::after {
+    transition: none;
+  }
+
+  .countdown-segment--exiting,
+  .countdown-colon {
+    animation: none;
+  }
+
+  .film-roll {
+    transition: none;
+  }
+
+  .save-date-button {
+    transition: none;
+  }
+}
+
+@media (orientation: portrait) {
+  .countdown-page {
+    --countdown-content-rotation: -90deg;
+    --countdown-orientation-angle: 90deg;
+  }
+
+}
+
+@media (max-width: 520px) {
+  .countdown-page {
+    --countdown-number-size: clamp(1.9rem, 9vw, 3.2rem);
+    --countdown-label-size: clamp(0.38rem, 1.65vw, 0.53rem);
+  }
+
+  .countdown {
+    padding: 0;
+  }
+
+  .film-roll__label {
+    letter-spacing: 0.06em;
+    text-indent: 0.06em;
+  }
+
+  .countdown-colon {
+    width: 0.36em;
+    margin: 0;
+  }
+}

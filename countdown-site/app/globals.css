@@ -1,0 +1,95 @@
+@font-face {
+  font-family: 'HT Piet Mono';
+  src: url('/font/HTPietMono-Thin.otf') format('opentype');
+  font-style: normal;
+  font-weight: 100;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HT Piet Mono';
+  src: url('/font/HTPietMono-ThinItalic.otf') format('opentype');
+  font-style: italic;
+  font-weight: 100;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HT Piet Mono';
+  src: url('/font/HTPietMono-Light.otf') format('opentype');
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HT Piet Mono';
+  src: url('/font/HTPietMono-LightItalic.otf') format('opentype');
+  font-style: italic;
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HT Piet Mono';
+  src: url('/font/HTPietMono-Regular.otf') format('opentype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HT Piet Mono';
+  src: url('/font/HTPietMono-Italic.otf') format('opentype');
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HT Piet Mono';
+  src: url('/font/HTPietMono-Bold.otf') format('opentype');
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HT Piet Mono';
+  src: url('/font/HTPietMono-BoldItalic.otf') format('opentype');
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+}
+
+:root {
+  background: #000;
+  color-scheme: dark;
+  font-family: 'HT Piet Mono', monospace;
+  font-synthesis: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: #000;
+  overscroll-behavior: none;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100svh;
+}
+
+button,
+input {
+  font: inherit;
+}

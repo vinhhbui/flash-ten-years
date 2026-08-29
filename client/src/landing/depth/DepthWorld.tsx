@@ -26,11 +26,17 @@ function SpatialNode({ scene, node }: SpatialNodeProps) {
     return <h1 {...attributes} className="spatial-node spatial-node--title">{scene.title}</h1>;
   }
 
+  if (node.type === "caption") {
+    return <p {...attributes} className="spatial-node spatial-node--caption">{scene.caption}</p>;
+  }
+
   if (node.type === "content") {
     return (
       <div {...attributes} className="spatial-node spatial-node--content">
         <h2>{scene.title}</h2>
+        {scene.hashtags && <p className="spatial-node__hashtags">{scene.hashtags}</p>}
         {scene.body && <p>{scene.body}</p>}
+        {scene.brief && <p className="spatial-node__brief">{scene.brief}</p>}
       </div>
     );
   }

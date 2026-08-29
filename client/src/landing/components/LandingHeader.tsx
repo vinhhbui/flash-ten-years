@@ -7,7 +7,7 @@ export function LandingHeader() {
         FLASH <span>10</span>
       </Link>
       <nav className="film-road-nav__links" aria-label="Landing stages">
-        <a href="#experience">10 STORIES</a>
+        <a href="#experience">10 THẾ HỆ</a>
         <a href="#live-wall">LIVE WALL</a>
       </nav>
     </header>

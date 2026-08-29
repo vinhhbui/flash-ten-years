@@ -4,7 +4,7 @@ export type SpatialSceneTheme = "paper" | "acid" | "pink" | "blue" | "orange" | 
 
 export interface SpatialNodeConfig {
   id: string;
-  type: "label" | "title" | "content" | "object" | "accent" | "artwork";
+  type: "label" | "title" | "caption" | "content" | "object" | "accent" | "artwork";
   worldX: number;
   worldY: number;
   localZ: number;
@@ -23,6 +23,9 @@ export interface SpatialSceneConfig {
   id: string;
   title: string;
   label: string;
+  caption?: string;
+  hashtags?: string;
+  brief?: string;
   body?: string;
   theme: SpatialSceneTheme;
   worldZ: number;
@@ -30,8 +33,11 @@ export interface SpatialSceneConfig {
 }
 
 interface ContentSceneSeed {
+  year: string;
   title: string;
+  hashtags: string;
   body: string;
+  brief?: string;
   theme: SpatialSceneTheme;
   layout: "left" | "right";
   primaryArtwork?: ArtworkSeed;
@@ -45,16 +51,92 @@ interface ArtworkSeed {
 }
 
 const contentSceneSeeds: ContentSceneSeed[] = [
-  { title: "CONTENT 01", body: "Your first story, image and artwork will live here.", theme: "acid", layout: "left" },
-  { title: "CONTENT 02", body: "A flexible chapter ready for a photograph or illustration.", theme: "pink", layout: "right" },
-  { title: "CONTENT 03", body: "Use this space for the next moment in the ten-year reel.", theme: "paper", layout: "left" },
-  { title: "CONTENT 04", body: "Copy and visual slots are separated so both are easy to replace.", theme: "blue", layout: "right" },
-  { title: "CONTENT 05", body: "A new frame arrives while the previous chapter passes the camera.", theme: "orange", layout: "left" },
-  { title: "CONTENT 06", body: "This chapter can hold an artwork, photo or transparent cut-out.", theme: "lilac", layout: "right" },
-  { title: "CONTENT 07", body: "The shared road keeps every memory inside one continuous journey.", theme: "acid", layout: "left" },
-  { title: "CONTENT 08", body: "Add the archive story and supporting visual for this chapter.", theme: "pink", layout: "right" },
-  { title: "CONTENT 09", body: "The final story chapter prepares the handoff to the community wall.", theme: "paper", layout: "left" },
-  { title: "CONTENT 10", body: "Invite everyone to add one more memory before the Live Wall.", theme: "orange", layout: "right" },
+  {
+    year: "2016",
+    title: "TẠO NÉT",
+    hashtags: "#2016  #nhóm_kín  #1st_meeting  #thành_lập  #thử_nghiệm",
+    body: "TẠO (thành) NÉT, hết mình thử lửa, tiên phong làm nên những lần đầu tiên, dám thử-dám làm.",
+    theme: "acid",
+    layout: "left",
+  },
+  {
+    year: "2017",
+    title: "NỐI NÉT",
+    hashtags: "#2017  #đốt_pháo_bông  #ụp_bánh_kem  #thẻ_giấy",
+    body: "NỐI từng NÉT có sẵn, làm hết sức quậy hết mình.",
+    theme: "pink",
+    layout: "right",
+  },
+  {
+    year: "2018",
+    title: "LẤY NÉT",
+    hashtags: "#2018  #CTV  #quy_chế  #thẻ_và_lanyard  #độc_tài  #Điên",
+    body: "LẤY liền NÉT này, làm thử cái này đi. Tôi muốn làm NÉT này liền. 1 2 3 TÁCH TÁCH TÁCH",
+    brief: "Thổi vào Flash làn gió mới bằng những dự án mang đậm nét cá nhân.",
+    theme: "paper",
+    layout: "left",
+  },
+  {
+    year: "2019",
+    title: "NÉT CĂNG",
+    hashtags: "#2019  #Chuyện_Của_Ảnh  #Covid_lần_thứ_I  #picnic  #trà_đá_tạp_hóa  #Nghe_em_nói",
+    body: "Ngồi xem ảnh NÉT CĂNG, uống trà đá và nghe em nói. NÉT CĂNG là từ không có trong từ điển của FLASH vì Flash luôn có hình out nét.",
+    brief: "Giữ NÉT CĂNG, Gen 4 kể lại câu chuyện của mình bằng hình ảnh qua nhiều góc nhìn phong phú và đầy cảm xúc.",
+    theme: "blue",
+    layout: "right",
+  },
+  {
+    year: "2020",
+    title: "NÉT ĐỨT",
+    hashtags: "#CCA2  #2020  #Covid_lần_thứ_II  #Sinh_Nhật_Online  #QKĐT  #Lóe  #con_vịt_mặc_áo_Flash",
+    body: "Tưởng chừng là NÉT ĐỨT làm ĐỨT NÉT, nhưng tôi tìm được cách tạo vòng tròn ảo giữ vòng tròn thật. <3",
+    brief: "Mùa mất kết nối, nhưng Flash vẫn vượt qua và giữ được nhịp.",
+    theme: "orange",
+    layout: "left",
+  },
+  {
+    year: "2021",
+    title: "NÉT CẬN",
+    hashtags: "#f.leak  #1st_meeting_sở_thú  #logo_theo_mùa  #MV_Đừng_bỏ_em  #2021",
+    body: "Bắt NÉT CẬN, 5 ngã 6 nâng, kéo gần khoảng cách.",
+    brief: "Sau mùa Covid, Gen 6 dù ít thành viên nhưng mọi người thân thiết gắn bó, nhịp của CLB trở lại.",
+    theme: "lilac",
+    layout: "right",
+  },
+  {
+    year: "2023",
+    title: "BẬT NÉT",
+    hashtags: "#bánh_kem_màu_hường  #hiệu_ảnh_Phờ-lát  #cà_phê_sữa  #2023  #đông  #CCA3",
+    body: "BẬT flash lên, sẵn sàng và chụp toàn NÉT Flash. Cảnh báo, mật độ FLASH đang tăng…",
+    theme: "acid",
+    layout: "left",
+  },
+  {
+    year: "2024",
+    title: "GIỮ NÉT",
+    hashtags: "#ban_model  #polaroid  #2024  #gen_8  #cho_tụi_mình",
+    body: "Flash ơi GIỮ lấy mình dùm, tuy rằng khác NÉT nhưng chung một nhà.",
+    brief: "GIỮ NÉT truyền lửa, Gen 8 nhẹ nhàng giữ nhịp, duy trì đam mê.",
+    theme: "pink",
+    layout: "right",
+  },
+  {
+    year: "2025",
+    title: "BẺ NÉT",
+    hashtags: "#2_tháng_1_project  #kpi  #nhà_trọ_bí_ẩn  #2025  #metro",
+    body: "BẺ NÉT theo thời, phá thời theo nét.",
+    brief: "Quyết tâm BẺ NÉT, với cá tính riêng, Gen 9 đã mang đến cho Flash một màu sắc tươi mới của tuổi trẻ.",
+    theme: "paper",
+    layout: "left",
+  },
+  {
+    year: "2026",
+    title: "CHUNG MỘT NÉT",
+    hashtags: "#nhà_vẫn_là_nhà  #x_leader  #project_góc_nhìn  #2026  #FlashConNet",
+    body: "Mỗi gen một vẻ, mười gen vẹn mười, nhưng mãi CHUNG MỘT NÉT. MỘT NÉT FLASH.",
+    theme: "orange",
+    layout: "right",
+  },
 ];
 
 const sharedHeroNodes = {
@@ -148,7 +230,9 @@ function createContentScene(seed: ContentSceneSeed, index: number): SpatialScene
   return {
     id: `content-${sectionNumber}`,
     title: seed.title,
-    label: `SECTION ${sectionNumber} / 10`,
+    label: `GEN ${sectionNumber} / ${seed.year}`,
+    hashtags: seed.hashtags,
+    brief: seed.brief,
     body: seed.body,
     theme: seed.theme,
     worldZ,
@@ -160,12 +244,23 @@ export const spatialScenes: SpatialSceneConfig[] = [
   {
     id: "flash10",
     title: "FLASH 10",
-    label: "TEN YEARS / ONE LIVING REEL",
+    label: "FLASH - 10 năm CÒN - NÉT",
+    caption: "Mỗi thế hệ mang 1 NÉT riêng biệt, NỐI lại thành một FLASH.",
     theme: "paper",
     worldZ: 3500,
     nodes: [
       sharedHeroNodes.label,
       sharedHeroNodes.title,
+      {
+        id: "caption",
+        type: "caption",
+        worldX: 0,
+        worldY: 125,
+        compactWorldX: 0,
+        compactWorldY: 118,
+        localZ: 0,
+        passDepth: 920,
+      },
       {
         id: "object",
         type: "object",
