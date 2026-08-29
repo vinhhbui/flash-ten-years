@@ -4,6 +4,13 @@ import { memo, useEffect, useRef, useState } from "react";
 import FilmFrame from "../components/FilmFrame";
 import type { FilmFrameSize } from "../components/FilmFrame";
 import {
+  FLASHBACK_CONTENT,
+  FLASHBACK_HERO_CAPTION,
+  FLASHBACK_HERO_SUBTITLE,
+  FLASHBACK_HERO_TITLE,
+  getFlashbackGeneration,
+} from "../content/flashbackContent";
+import {
   FLASHBACK_SECTION_COUNT,
   getContentSequencePosition,
 } from "./contentSequence";
@@ -47,26 +54,25 @@ const B_HEIGHT_VH = 0.5;
 const B_START_WIDTH_RATIO = 0.92;
 const LANDING_SECTION_COUNT = FLASHBACK_SECTION_COUNT;
 const LAST_CONTENT_SECTION = FLASHBACK_SECTION_COUNT;
-const MARQUEE_TAGS = ["Cuonphim", "Flashback", "Connect", "Content"] as const;
+const MARQUEE_TAG_INDEXES = [0, 1, 2, 3] as const;
 // At a content anchor the two panels are offset by half a viewport, so the
 // outer panel rows are the pair that would sit directly around screen center.
 const MARQUEE_ROWS = [1, 2, 3, 4, 5, 6] as const;
-const CONTENT_BODY_LINES = [
-  "Lorem ipsum dolor sit amet.",
-  "Consectetur adipiscing elit.",
-  "Sed do eiusmod tempor.",
-];
 const CONTENT_IMAGES = Array.from(
-  { length: 10 },
+  { length: FLASHBACK_CONTENT.length },
   (_, index) => `/content-images/content-${String(index + 1).padStart(2, "0")}.png`,
 );
 
+function getMarqueeTag(contentNumber: number, tagIndex: number) {
+  return getFlashbackGeneration(contentNumber)?.hashtags[tagIndex] ?? "#FLASH";
+}
+
 const BackgroundMarqueeWord = memo(function BackgroundMarqueeWord({
   contentNumber,
-  tag,
+  tagIndex,
 }: {
   contentNumber: number;
-  tag: typeof MARQUEE_TAGS[number];
+  tagIndex: number;
 }) {
   const previousNumberRef = useRef(contentNumber);
   const [outgoingNumber, setOutgoingNumber] = useState<number | null>(null);
@@ -89,14 +95,14 @@ const BackgroundMarqueeWord = memo(function BackgroundMarqueeWord({
           className="rectangle-test__background-marquee-word-copy"
           data-state="outgoing"
         >
-          {`#${tag}${outgoingNumber}`}
+          {getMarqueeTag(outgoingNumber, tagIndex)}
         </span>
       )}
       <span
         className="rectangle-test__background-marquee-word-copy"
         data-state={outgoingNumber === null ? "current" : "incoming"}
       >
-        {`#${tag}${contentNumber}`}
+        {getMarqueeTag(contentNumber, tagIndex)}
       </span>
     </span>
   );
@@ -164,11 +170,11 @@ const BackgroundMarqueePanel = memo(function BackgroundMarqueePanel({
         >
           {[0, 1].map((group) => (
             <div className="rectangle-test__background-marquee-group" key={group}>
-              {MARQUEE_TAGS.map((tag) => (
+              {MARQUEE_TAG_INDEXES.map((tagIndex) => (
                 <BackgroundMarqueeWord
                   contentNumber={contentNumber}
-                  key={tag}
-                  tag={tag}
+                  key={tagIndex}
+                  tagIndex={tagIndex}
                 />
               ))}
             </div>
@@ -207,17 +213,20 @@ function SectionContent({
   contentNumber: number;
   subContentIndex: number;
 }) {
+  const content = getFlashbackGeneration(contentNumber);
+  if (!content) return null;
+
   if (subContentIndex > 0) {
     return (
       <section
         className="rectangle-test__section-content"
-        aria-label={`Content ${contentNumber}, ảnh phụ ${subContentIndex}`}
+        aria-label={`Gen ${content.generation}: ${content.title}, ảnh phụ ${subContentIndex}`}
         data-layout="subcontent"
       >
         <div
           className="rectangle-test__subcontent-placeholder"
           role="img"
-          aria-label={`Ảnh phụ ${subContentIndex} của Content ${contentNumber}`}
+          aria-label={`Ảnh phụ ${subContentIndex} của Gen ${content.generation}: ${content.title}`}
         >
           <span>{`Image ${contentNumber}.${subContentIndex}`}</span>
         </div>
@@ -236,7 +245,7 @@ function SectionContent({
       data-image-side={isBookendContent ? undefined : contentNumber % 2 === 0 ? "left" : "right"}
     >
       <img
-        alt={`Minh họa cho Content ${contentNumber}`}
+        alt={`Minh họa Gen ${content.generation}: ${content.title}`}
         className="rectangle-test__section-image"
         decoding="async"
         draggable={false}
@@ -245,10 +254,12 @@ function SectionContent({
       />
       <div className="rectangle-test__section-copy">
         <h2 id={`flashback-content-title-${contentNumber}`}>
-          Content {contentNumber}
+          {`Gen ${content.generation}: ${content.title}`}
         </h2>
         <div className="rectangle-test__section-body">
-          {CONTENT_BODY_LINES.map((line) => <p key={line}>{line}</p>)}
+          <p>{content.hashtags.join(" ")}</p>
+          <p>{content.description}</p>
+          {content.brief ? <p>{content.brief}</p> : null}
         </div>
       </div>
     </section>
@@ -646,15 +657,25 @@ export default function RectangleScrollTest({
     <div
       className={`rectangle-test${embedded ? " rectangle-test--embedded" : ""}`}
       ref={pageRef}
-      aria-label="Film frame perspective scroll test"
+      aria-label="Hành trình FLASH - 10 năm CÒN - NÉT"
       data-section-count={LANDING_SECTION_COUNT}
       data-current-section={currentSection}
     >
       {embedded ? <BackgroundMarquee currentSection={currentSection} /> : null}
       {embedded ? (
         <h1 className="rectangle-test__hero-title">
-          <span>FLASHBACK</span>
-          <span>Mười năm Còn-nét</span>
+          <span>{FLASHBACK_HERO_TITLE}</span>
+          <span>{FLASHBACK_HERO_SUBTITLE}</span>
+          <span
+            style={{
+              fontSize: "0.085em",
+              letterSpacing: "0.01em",
+              lineHeight: 1.25,
+              marginTop: "1.4em",
+            }}
+          >
+            {FLASHBACK_HERO_CAPTION}
+          </span>
         </h1>
       ) : null}
       {embedded && currentContentPosition ? (
