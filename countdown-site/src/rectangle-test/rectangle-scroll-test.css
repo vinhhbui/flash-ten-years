@@ -2,10 +2,16 @@
   --rectangle-plane-width: 20vw;
   --rectangle-b-width: 92vw;
   --rectangle-a-scale: 1;
+  --rectangle-a-image-width: 100%;
+  --rectangle-a-image-counter-scale: 1;
   --rectangle-a-opacity: 1;
   --rectangle-b-fade-opacity: 0;
   --rectangle-b-angle: 44.264deg;
   --rectangle-b-depth-scale: 3.5707;
+  --rectangle-b-image-height: 357.07%;
+  --rectangle-b-image-counter-scale: 0.280057;
+  --rectangle-frame-height: 20vh;
+  --rectangle-half-viewport-offset: -50vh;
   position: fixed;
   inset: 0;
   overflow: hidden;
@@ -54,65 +60,72 @@
 .rectangle-test__background-marquee-track {
   display: flex;
   width: max-content;
-  animation: rectangle-background-marquee 38s linear infinite;
+  animation: rectangle-background-marquee 64s linear infinite;
   transform: translate3d(0, 0, 0);
   will-change: transform;
 }
 
 .rectangle-test__background-marquee-track[data-direction="reverse"] {
   animation-name: rectangle-background-marquee-reverse;
-  animation-duration: 46s;
+  animation-duration: 72s;
 }
 
 .rectangle-test__background-marquee-group {
-  display: flex;
-  min-width: 100vw;
+  display: grid;
+  width: max(240vw, 147rem);
   box-sizing: border-box;
   flex: 0 0 auto;
-  justify-content: space-around;
-  gap: clamp(2rem, 6vw, 6rem);
-  padding-inline: clamp(1rem, 3vw, 3rem);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  align-items: center;
 }
 
 .rectangle-test__background-marquee-word {
   position: relative;
   display: inline-grid;
+  width: 100%;
+  box-sizing: border-box;
   overflow: hidden;
+  padding-block: 0.18em 0.22em;
   color: #666;
   font-size: clamp(1.5rem, 3.9vw, 3.9rem);
   font-weight: 700;
   letter-spacing: -0.09em;
-  line-height: 0.72;
+  line-height: 1;
   -webkit-text-stroke: 0.5px #666;
+  justify-items: center;
   white-space: nowrap;
 }
 
 .rectangle-test__background-marquee-word-copy {
   grid-area: 1 / 1;
+  will-change: transform, opacity;
 }
 
 .rectangle-test__background-marquee-word-copy[data-state="outgoing"] {
-  animation: rectangle-background-word-out 560ms cubic-bezier(0.45, 0, 0.55, 1)
+  animation: rectangle-background-word-out 760ms cubic-bezier(0.22, 1, 0.36, 1)
     both;
 }
 
 .rectangle-test__background-marquee-word-copy[data-state="incoming"] {
-  animation: rectangle-background-word-in 560ms cubic-bezier(0.45, 0, 0.55, 1)
+  animation: rectangle-background-word-in 760ms cubic-bezier(0.22, 1, 0.36, 1)
     both;
 }
 
 @keyframes rectangle-background-word-out {
   to {
-    transform: translate3d(0, -110%, 0);
+    opacity: 0;
+    transform: translate3d(0, -72%, 0);
   }
 }
 
 @keyframes rectangle-background-word-in {
   from {
-    transform: translate3d(0, 110%, 0);
+    opacity: 0;
+    transform: translate3d(0, 72%, 0);
   }
 
   to {
+    opacity: 1;
     transform: translate3d(0, 0, 0);
   }
 }
@@ -202,7 +215,7 @@
   left: 0;
   display: grid;
   width: 100%;
-  grid-auto-rows: 20vh;
+  grid-auto-rows: var(--rectangle-frame-height);
   gap: 0;
 }
 
@@ -211,7 +224,11 @@
 }
 
 .rectangle-test__column--perspective .rectangle-test__track {
-  transform: translate3d(0, calc(-50vh + var(--rectangle-track-y, 0px)), 0);
+  transform: translate3d(
+    0,
+    calc(var(--rectangle-half-viewport-offset) + var(--rectangle-track-y, 0px)),
+    0
+  );
 }
 
 .rectangle-test[data-motion="moving"] .rectangle-test__track {
@@ -234,7 +251,7 @@
 
 .rectangle-test__film-frame {
   width: 100%;
-  height: 20vh;
+  height: var(--rectangle-frame-height);
   color: #4ad181;
 }
 
@@ -255,9 +272,45 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   filter: grayscale(1);
   pointer-events: none;
   user-select: none;
+}
+
+.rectangle-test__column--vertical .rectangle-test__film-image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--rectangle-a-image-width);
+  transform: translate(-50%, -50%) scaleX(var(--rectangle-a-image-counter-scale));
+  transform-origin: center;
+}
+
+.rectangle-test__column--perspective .rectangle-test__film-image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: var(--rectangle-b-image-height);
+  transform: translate(-50%, -50%) scaleY(var(--rectangle-b-image-counter-scale));
+  transform-origin: center;
+}
+
+@media (max-width: 768px) {
+  .rectangle-test {
+    --rectangle-plane-width: 25vw;
+  }
+
+  .rectangle-test__background-marquee-group {
+    width: max(420vw, 112rem);
+  }
+
+  .rectangle-test__background-marquee-word {
+    padding-block: 0.22em 0.26em;
+    font-size: clamp(1.05rem, 5vw, 1.5rem);
+    letter-spacing: -0.06em;
+    -webkit-text-stroke-width: 0.35px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

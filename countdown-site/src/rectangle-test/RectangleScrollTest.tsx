@@ -1,9 +1,10 @@
 "use client";
 
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import FilmFrame from "../components/FilmFrame";
 import type { FilmFrameSize } from "../components/FilmFrame";
 import {
+  FLASHBACK_CONTENT,
   FLASHBACK_SECTION_COUNT,
   getContentSequencePosition,
 } from "./contentSequence";
@@ -45,58 +46,54 @@ const A_MIN_SCALE = 0.55;
 const B_PERSPECTIVE_VH = 0.8;
 const B_HEIGHT_VH = 0.5;
 const B_START_WIDTH_RATIO = 0.92;
+const COMPACT_BREAKPOINT = 768;
+const DESKTOP_PLANE_WIDTH_RATIO = 0.2;
+const COMPACT_PLANE_WIDTH_RATIO = 0.25;
 const LANDING_SECTION_COUNT = FLASHBACK_SECTION_COUNT;
 const LAST_CONTENT_SECTION = FLASHBACK_SECTION_COUNT;
-const MARQUEE_TAGS = ["Cuonphim", "Flashback", "Connect", "Content"] as const;
+const MARQUEE_SLOT_COUNT = 7;
 // At a content anchor the two panels are offset by half a viewport, so the
 // outer panel rows are the pair that would sit directly around screen center.
 const MARQUEE_ROWS = [1, 2, 3, 4, 5, 6] as const;
-const CONTENT_BODY_LINES = [
-  "Lorem ipsum dolor sit amet.",
-  "Consectetur adipiscing elit.",
-  "Sed do eiusmod tempor.",
-];
 const CONTENT_IMAGES = Array.from(
   { length: 10 },
   (_, index) => `/content-images/content-${String(index + 1).padStart(2, "0")}.png`,
 );
 
 const BackgroundMarqueeWord = memo(function BackgroundMarqueeWord({
-  contentNumber,
   tag,
 }: {
-  contentNumber: number;
-  tag: typeof MARQUEE_TAGS[number];
+  tag: string;
 }) {
-  const previousNumberRef = useRef(contentNumber);
-  const [outgoingNumber, setOutgoingNumber] = useState<number | null>(null);
+  const previousTagRef = useRef(tag);
+  const [outgoingTag, setOutgoingTag] = useState<string | null>(null);
 
-  useEffect(() => {
-    const previousNumber = previousNumberRef.current;
-    if (previousNumber === contentNumber) return;
+  useLayoutEffect(() => {
+    const previousTag = previousTagRef.current;
+    if (previousTag === tag) return;
 
-    previousNumberRef.current = contentNumber;
-    setOutgoingNumber(previousNumber);
-    const timeoutId = window.setTimeout(() => setOutgoingNumber(null), 560);
+    previousTagRef.current = tag;
+    setOutgoingTag(previousTag);
+    const timeoutId = window.setTimeout(() => setOutgoingTag(null), 780);
 
     return () => window.clearTimeout(timeoutId);
-  }, [contentNumber]);
+  }, [tag]);
 
   return (
     <span className="rectangle-test__background-marquee-word">
-      {outgoingNumber === null ? null : (
+      {outgoingTag === null ? null : (
         <span
           className="rectangle-test__background-marquee-word-copy"
           data-state="outgoing"
         >
-          {`#${tag}${outgoingNumber}`}
+          {outgoingTag}
         </span>
       )}
       <span
         className="rectangle-test__background-marquee-word-copy"
-        data-state={outgoingNumber === null ? "current" : "incoming"}
+        data-state={outgoingTag === null ? "current" : "incoming"}
       >
-        {`#${tag}${contentNumber}`}
+        {tag}
       </span>
     </span>
   );
@@ -144,10 +141,10 @@ const FilmFrameTrack = memo(function FilmFrameTrack({
 });
 
 const BackgroundMarqueePanel = memo(function BackgroundMarqueePanel({
-  contentNumber,
+  tags,
   isHidden = false,
 }: {
-  contentNumber: number;
+  tags: readonly string[];
   isHidden?: boolean;
 }) {
   return (
@@ -164,10 +161,9 @@ const BackgroundMarqueePanel = memo(function BackgroundMarqueePanel({
         >
           {[0, 1].map((group) => (
             <div className="rectangle-test__background-marquee-group" key={group}>
-              {MARQUEE_TAGS.map((tag) => (
+              {tags.map((tag, tagIndex) => (
                 <BackgroundMarqueeWord
-                  contentNumber={contentNumber}
-                  key={tag}
+                  key={tagIndex}
                   tag={tag}
                 />
               ))}
@@ -182,17 +178,25 @@ const BackgroundMarqueePanel = memo(function BackgroundMarqueePanel({
 function BackgroundMarquee({ currentSection }: { currentSection: number }) {
   const sequencePosition = getContentSequencePosition(currentSection);
   const currentContentNumber = sequencePosition?.contentNumber ?? 1;
+  const currentContent = FLASHBACK_CONTENT[currentContentNumber - 1];
+  const tags = useMemo(() => {
+    const contentTags = currentContent.hashtags.split(/\s{2,}/);
+    return Array.from(
+      { length: MARQUEE_SLOT_COUNT },
+      (_, index) => contentTags[index % contentTags.length],
+    );
+  }, [currentContent.hashtags]);
 
   return (
     <div className="rectangle-test__background-marquee" aria-hidden="true">
       <div className="rectangle-test__background-marquee-stack">
         <BackgroundMarqueePanel
-          contentNumber={currentContentNumber}
+          tags={tags}
           isHidden={currentSection === 1}
           key="current-content-marquee"
         />
         <BackgroundMarqueePanel
-          contentNumber={currentContentNumber}
+          tags={tags}
           key="current-content-marquee-repeat"
         />
       </div>
@@ -207,17 +211,19 @@ function SectionContent({
   contentNumber: number;
   subContentIndex: number;
 }) {
+  const content = FLASHBACK_CONTENT[contentNumber - 1];
+
   if (subContentIndex > 0) {
     return (
       <section
         className="rectangle-test__section-content"
-        aria-label={`Content ${contentNumber}, ảnh phụ ${subContentIndex}`}
+        aria-label={`${content.generation}: ${content.title}, ảnh phụ ${subContentIndex}`}
         data-layout="subcontent"
       >
         <div
           className="rectangle-test__subcontent-placeholder"
           role="img"
-          aria-label={`Ảnh phụ ${subContentIndex} của Content ${contentNumber}`}
+          aria-label={`Ảnh phụ ${subContentIndex} của ${content.generation}: ${content.title}`}
         >
           <span>{`Image ${contentNumber}.${subContentIndex}`}</span>
         </div>
@@ -236,7 +242,7 @@ function SectionContent({
       data-image-side={isBookendContent ? undefined : contentNumber % 2 === 0 ? "left" : "right"}
     >
       <img
-        alt={`Minh họa cho Content ${contentNumber}`}
+        alt={`Minh họa cho ${content.generation}: ${content.title}`}
         className="rectangle-test__section-image"
         decoding="async"
         draggable={false}
@@ -245,10 +251,12 @@ function SectionContent({
       />
       <div className="rectangle-test__section-copy">
         <h2 id={`flashback-content-title-${contentNumber}`}>
-          Content {contentNumber}
+          <span className="rectangle-test__section-generation">{content.generation}</span>
+          {content.title}
         </h2>
         <div className="rectangle-test__section-body">
-          {CONTENT_BODY_LINES.map((line) => <p key={line}>{line}</p>)}
+          <p>{content.description}</p>
+          {content.brief ? <p className="rectangle-test__section-brief">{content.brief}</p> : null}
         </div>
       </div>
     </section>
@@ -283,15 +291,28 @@ export default function RectangleScrollTest({
     let renderedSection = 1;
     let viewportWidth = 0;
     let viewportHeight = 0;
+    let planeWidthRatio = DESKTOP_PLANE_WIDTH_RATIO;
     let framePitch = 0;
     let maximumPosition = 0;
 
     const updateViewportMetrics = () => {
       viewportWidth = document.documentElement.clientWidth;
       viewportHeight = document.documentElement.clientHeight;
+      planeWidthRatio = viewportWidth <= COMPACT_BREAKPOINT
+        ? COMPACT_PLANE_WIDTH_RATIO
+        : DESKTOP_PLANE_WIDTH_RATIO;
       framePitch = viewportHeight * 0.2;
       maximumPosition = viewportHeight * LANDING_SECTION_COUNT;
+      page.style.setProperty(
+        "--rectangle-plane-width",
+        `${(viewportWidth * planeWidthRatio).toFixed(2)}px`,
+      );
       page.style.setProperty("--rectangle-viewport-height", `${viewportHeight}px`);
+      page.style.setProperty("--rectangle-frame-height", `${framePitch}px`);
+      page.style.setProperty(
+        "--rectangle-half-viewport-offset",
+        `${(-viewportHeight * 0.5).toFixed(2)}px`,
+      );
     };
     const clampPosition = (nextPosition: number) => (
       Math.max(0, Math.min(maximumPosition, nextPosition))
@@ -299,7 +320,7 @@ export default function RectangleScrollTest({
 
     const updateSharedFrameSize = () => {
       const nextSize = {
-        width: Math.round(viewportWidth * 0.2),
+        width: Math.round(viewportWidth * planeWidthRatio),
         height: Math.round(viewportHeight * 0.2),
       };
       setSharedFrameSize((currentSize) => (
@@ -332,12 +353,13 @@ export default function RectangleScrollTest({
         Math.min(1, (currentSectionProgress - 0.5) / 0.2),
       );
       const contentExitOpacity = 1 - contentFadeOutProgress;
+      const compactViewport = viewportWidth <= COMPACT_BREAKPOINT;
       const contentBelowEntry = Math.max(
         0,
         1 - currentSectionProgress / 0.28,
       );
       const contentPerspectiveScale = currentSectionProgress <= 0.5
-        ? 1.6 - currentSectionProgress * 1.2
+        ? 1 + (compactViewport ? 0.28 : 0.6) * (1 - currentSectionProgress / 0.5)
         : 1 - contentFadeOutProgress * 0.75;
       const lastSectionProgress = Math.max(
         0,
@@ -347,7 +369,7 @@ export default function RectangleScrollTest({
         * (3 - 2 * lastSectionProgress);
       const easedProgress = progress * progress * (3 - 2 * progress);
       const aScale = 1 - (1 - A_MIN_SCALE) * easedProgress;
-      const aWidth = viewportWidth * 0.2 * aScale;
+      const aWidth = viewportWidth * planeWidthRatio * aScale;
       const bBottomWidthRatio = B_START_WIDTH_RATIO
         + (1 - B_START_WIDTH_RATIO) * easedLastSectionProgress;
       const bBottomWidth = viewportWidth * bBottomWidthRatio;
@@ -360,6 +382,8 @@ export default function RectangleScrollTest({
 
       page.style.setProperty("--rectangle-track-y", `${-wrappedPosition.toFixed(2)}px`);
       page.style.setProperty("--rectangle-a-scale", aScale.toFixed(4));
+      page.style.setProperty("--rectangle-a-image-width", `${(aScale * 100).toFixed(3)}%`);
+      page.style.setProperty("--rectangle-a-image-counter-scale", (1 / aScale).toFixed(6));
       page.style.setProperty("--rectangle-a-opacity", (1 - easedProgress).toFixed(4));
       page.style.setProperty(
         "--rectangle-a-title-y",
@@ -390,15 +414,17 @@ export default function RectangleScrollTest({
       );
       page.style.setProperty(
         "--rectangle-content-entry-y",
-        `${(viewportHeight * 0.9 * contentBelowEntry).toFixed(2)}px`,
+        `${(viewportHeight * (compactViewport ? 0.72 : 0.9) * contentBelowEntry).toFixed(2)}px`,
       );
       page.style.setProperty(
         "--rectangle-content-entry-skew",
-        `${(10 * contentBelowEntry).toFixed(3)}deg`,
+        `${((compactViewport ? 5 : 10) * contentBelowEntry).toFixed(3)}deg`,
       );
       page.style.setProperty("--rectangle-b-width", `${bBottomWidth.toFixed(2)}px`);
       page.style.setProperty("--rectangle-b-angle", `${bAngle.toFixed(3)}deg`);
       page.style.setProperty("--rectangle-b-depth-scale", bDepthScale.toFixed(4));
+      page.style.setProperty("--rectangle-b-image-height", `${(bDepthScale * 100).toFixed(3)}%`);
+      page.style.setProperty("--rectangle-b-image-counter-scale", (1 / bDepthScale).toFixed(6));
 
       if (nextSection !== renderedSection) {
         renderedSection = nextSection;
@@ -652,10 +678,15 @@ export default function RectangleScrollTest({
     >
       {embedded ? <BackgroundMarquee currentSection={currentSection} /> : null}
       {embedded ? (
-        <h1 className="rectangle-test__hero-title">
-          <span>FLASHBACK</span>
-          <span>Mười năm Còn-nét</span>
-        </h1>
+        <>
+          <h1 className="rectangle-test__hero-title">
+            <span>FLASH - 10</span>
+            <span>năm CÒN - NÉT</span>
+          </h1>
+          <p className="rectangle-test__hero-caption">
+            Mỗi thế hệ mang 1 NÉT riêng biệt, NỐI lại thành một FLASH.
+          </p>
+        </>
       ) : null}
       {embedded && currentContentPosition ? (
         <SectionContent

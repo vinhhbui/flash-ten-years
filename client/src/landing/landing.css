@@ -121,6 +121,16 @@
   white-space: nowrap;
 }
 
+.spatial-node--caption {
+  z-index: 4;
+  width: min(78vw, 700px);
+  color: var(--film-paper);
+  font-size: clamp(0.76rem, 1.15vw, 1.05rem);
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+  text-align: center;
+}
+
 .depth-scene { --scene-color: var(--film-paper); }
 .depth-scene[data-theme="acid"] { --scene-color: var(--film-acid); }
 .depth-scene[data-theme="pink"] { --scene-color: var(--film-pink); }
@@ -155,6 +165,22 @@
   font-weight: 400;
   letter-spacing: 0.025em;
   line-height: 1.35;
+}
+
+.spatial-node--content .spatial-node__hashtags {
+  width: min(96%, 620px);
+  margin-top: clamp(16px, 2vw, 26px);
+  color: var(--scene-color);
+  font-size: clamp(0.62rem, 0.86vw, 0.8rem);
+  font-weight: 700;
+  letter-spacing: 0.055em;
+  line-height: 1.5;
+}
+
+.spatial-node--content .spatial-node__brief {
+  margin-top: clamp(12px, 1.6vw, 20px);
+  color: color-mix(in srgb, var(--film-paper) 78%, var(--scene-color));
+  font-size: clamp(0.72rem, 1vw, 0.94rem);
 }
 
 .spatial-node--artwork {
@@ -325,6 +351,9 @@
   .spatial-node--content { width: 86vw; }
   .spatial-node--content h2 { font-size: clamp(4rem, 18vw, 7rem); line-height: 0.8; }
   .spatial-node--content p { width: 88%; margin-top: 15px; font-size: 0.74rem; }
+  .spatial-node--content .spatial-node__hashtags { width: 96%; margin-top: 13px; font-size: 0.56rem; }
+  .spatial-node--content .spatial-node__brief { margin-top: 10px; font-size: 0.68rem; }
+  .spatial-node--caption { width: 85vw; font-size: 0.7rem; }
   .spatial-node--artwork { width: clamp(92px, 26vw, 120px); border-width: 5px; }
   .spatial-node--artwork span { font-size: clamp(2.1rem, 10vw, 3.5rem); }
   .spatial-node--artwork small { font-size: 0.4rem; }

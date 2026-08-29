@@ -2,14 +2,15 @@
 
 import { useEffect, useRef } from "react";
 import {
-  FLASHBACK_CONTENT_COUNT,
+  FLASHBACK_CONTENT,
   getContentStartSection,
 } from "../rectangle-test/contentSequence";
 import "./DynamicHeader.css";
 
-const HEADER_LINKS = Array.from({ length: FLASHBACK_CONTENT_COUNT }, (_, index) => ({
+const HEADER_LINKS = FLASHBACK_CONTENT.map((content, index) => ({
   href: `#flashback-section-${getContentStartSection(index + 1)}`,
-  label: `Mục ${index + 1}`,
+  label: `${content.generation}: ${content.title}`,
+  number: String(index + 1),
 }));
 
 type DynamicHeaderProps = {
@@ -118,7 +119,7 @@ export default function DynamicHeader({ expanded }: DynamicHeaderProps) {
             key={link.href}
             tabIndex={expanded ? 0 : -1}
           >
-            <span aria-hidden="true">{link.label.replace("Mục ", "")}</span>
+            <span aria-hidden="true">{link.number}</span>
           </a>
         ))}
       </nav>

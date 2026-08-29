@@ -103,7 +103,27 @@
   line-height: 1;
 }
 
+.landing-page .rectangle-test__hero-caption {
+  position: absolute;
+  z-index: 2;
+  top: calc(50% + clamp(5.25rem, 12vw, 9rem));
+  left: 50%;
+  width: min(78vw, 44rem);
+  margin: 0;
+  color: #fff;
+  font-size: clamp(0.7rem, 1.1vw, 1rem);
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+  text-align: center;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
 .landing-page .rectangle-test[data-hero-hidden="true"] .rectangle-test__hero-title {
+  visibility: hidden;
+}
+
+.landing-page .rectangle-test[data-hero-hidden="true"] .rectangle-test__hero-caption {
   visibility: hidden;
 }
 
@@ -224,6 +244,16 @@
   transform: translateX(var(--rectangle-title-offset-x, 0px));
 }
 
+.landing-page .rectangle-test__section-generation {
+  display: block;
+  margin-bottom: 0.4em;
+  color: #f7634b;
+  font-size: 0.22em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+
 .landing-page .rectangle-test__section-content[data-layout="bookend"] {
   width: min(86vw, 76rem);
   grid-template-columns: minmax(0, 1fr);
@@ -263,10 +293,130 @@
   margin: 0;
 }
 
-@media (max-width: 520px) {
+.landing-page .rectangle-test__section-brief {
+  color: rgb(255 255 255 / 72%);
+}
+
+@media (max-width: 768px) {
   .landing-page {
     --countdown-number-size: clamp(1.9rem, 9vw, 3.2rem);
     --countdown-label-size: clamp(0.38rem, 1.65vw, 0.53rem);
   }
 
+  .landing-page .rectangle-test__hero-title {
+    width: calc(100vw - 2rem);
+    font-size: clamp(4rem, 19vw, 7.5rem);
+    letter-spacing: -0.065em;
+    line-height: 0.8;
+  }
+
+  .landing-page .rectangle-test__hero-title span + span {
+    margin-top: 0.72em;
+    font-size: 0.3em;
+    letter-spacing: -0.025em;
+    line-height: 1.05;
+  }
+
+  .landing-page .rectangle-test__hero-caption {
+    top: calc(50% + clamp(5.5rem, 23vw, 7.2rem));
+    width: min(78vw, 22rem);
+    font-size: clamp(0.72rem, 3vw, 0.82rem);
+    line-height: 1.5;
+  }
+
+  .landing-page .rectangle-test__section-content {
+    width: min(calc(100vw - 2rem), 34rem);
+    max-height: calc(100svh - max(7.5rem, 16svh));
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(0.85rem, 2.4svh, 1.25rem);
+  }
+
+  .landing-page .rectangle-test__section-content[data-image-side="right"]
+    .rectangle-test__section-image,
+  .landing-page .rectangle-test__section-content[data-image-side="right"]
+    .rectangle-test__section-copy {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .landing-page .rectangle-test__section-image {
+    width: 100%;
+    max-height: min(29svh, 14rem);
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .landing-page .rectangle-test__section-content[data-layout="subcontent"] {
+    width: min(calc(100vw - 2rem), 32rem);
+  }
+
+  .landing-page .rectangle-test__subcontent-placeholder {
+    max-height: 44svh;
+  }
+
+  .landing-page .rectangle-test__section-copy {
+    text-align: center;
+  }
+
+  .landing-page .rectangle-test__section-content[data-layout="bookend"]
+    .rectangle-test__section-image {
+    width: 100%;
+    max-height: min(25svh, 12rem);
+  }
+
+  .landing-page .rectangle-test__section-copy h2 {
+    margin-bottom: clamp(0.75rem, 2svh, 1rem);
+    font-size: clamp(2.35rem, 11.5vw, 4rem);
+    letter-spacing: -0.065em;
+    line-height: 0.9;
+    text-wrap: balance;
+  }
+
+  .landing-page .rectangle-test__section-generation {
+    margin-bottom: 0.48em;
+    font-size: 0.26em;
+    letter-spacing: 0.08em;
+  }
+
+  .landing-page .rectangle-test__section-body {
+    gap: 0.6em;
+    max-width: 32rem;
+    margin-inline: auto;
+    font-size: clamp(0.8rem, 3.35vw, 0.94rem);
+    line-height: 1.42;
+    text-align: left;
+    text-wrap: pretty;
+  }
+}
+
+@media (max-width: 430px) and (max-height: 700px) {
+  .landing-page .rectangle-test__hero-title {
+    font-size: clamp(3.6rem, 18vw, 5rem);
+  }
+
+  .landing-page .rectangle-test__hero-caption {
+    top: calc(50% + 5rem);
+    font-size: 0.7rem;
+  }
+
+  .landing-page .rectangle-test__section-content {
+    gap: 0.7rem;
+  }
+
+  .landing-page .rectangle-test__section-image,
+  .landing-page .rectangle-test__section-content[data-layout="bookend"]
+    .rectangle-test__section-image {
+    max-height: 23svh;
+  }
+
+  .landing-page .rectangle-test__section-copy h2 {
+    margin-bottom: 0.65rem;
+    font-size: clamp(2.1rem, 10.5vw, 3rem);
+  }
+
+  .landing-page .rectangle-test__section-body {
+    gap: 0.4em;
+    font-size: clamp(0.74rem, 3.2vw, 0.84rem);
+    line-height: 1.35;
+  }
 }
