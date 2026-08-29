@@ -67,24 +67,32 @@ export const FLASHBACK_CONTENT = [
   },
 ] as const;
 
+export const FLASHBACK_PRIMARY_COLORS = [
+  "#EA75B6",
+  "#37A9EF",
+  "#4AD181",
+  "#EA75B6",
+  "#37A9EF",
+  "#4AD181",
+  "#EA75B6",
+  "#37A9EF",
+  "#4AD181",
+  "#EA75B6",
+] as const;
+
 export const FLASHBACK_CONTENT_COUNT = FLASHBACK_CONTENT.length;
-export const FLASHBACK_SUBCONTENT_COUNT = 2;
-export const FLASHBACK_STEPS_PER_CONTENT = 1 + FLASHBACK_SUBCONTENT_COUNT;
 export const FLASHBACK_HERO_SECTION = 1;
 export const FLASHBACK_SECTION_COUNT = (
   FLASHBACK_HERO_SECTION
-  + FLASHBACK_CONTENT_COUNT * FLASHBACK_STEPS_PER_CONTENT
+  + FLASHBACK_CONTENT_COUNT
 );
 
 export type ContentSequencePosition = {
   contentNumber: number;
-  subContentIndex: number;
 };
 
 export function getContentStartSection(contentNumber: number) {
-  return FLASHBACK_HERO_SECTION
-    + (contentNumber - 1) * FLASHBACK_STEPS_PER_CONTENT
-    + 1;
+  return FLASHBACK_HERO_SECTION + contentNumber;
 }
 
 export function getContentSequencePosition(
@@ -94,9 +102,7 @@ export function getContentSequencePosition(
     return null;
   }
 
-  const contentStep = section - FLASHBACK_HERO_SECTION - 1;
   return {
-    contentNumber: Math.floor(contentStep / FLASHBACK_STEPS_PER_CONTENT) + 1,
-    subContentIndex: contentStep % FLASHBACK_STEPS_PER_CONTENT,
+    contentNumber: section - FLASHBACK_HERO_SECTION,
   };
 }

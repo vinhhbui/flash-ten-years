@@ -1,10 +1,12 @@
 "use client";
 
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import FilmFrame from "../components/FilmFrame";
 import type { FilmFrameSize } from "../components/FilmFrame";
 import {
   FLASHBACK_CONTENT,
+  FLASHBACK_PRIMARY_COLORS,
   FLASHBACK_SECTION_COUNT,
   getContentSequencePosition,
 } from "./contentSequence";
@@ -48,17 +50,25 @@ const B_HEIGHT_VH = 0.5;
 const B_START_WIDTH_RATIO = 0.92;
 const COMPACT_BREAKPOINT = 768;
 const DESKTOP_PLANE_WIDTH_RATIO = 0.2;
-const COMPACT_PLANE_WIDTH_RATIO = 0.25;
+const COMPACT_PLANE_WIDTH_RATIO = 0.44;
 const LANDING_SECTION_COUNT = FLASHBACK_SECTION_COUNT;
 const LAST_CONTENT_SECTION = FLASHBACK_SECTION_COUNT;
 const MARQUEE_SLOT_COUNT = 7;
 // At a content anchor the two panels are offset by half a viewport, so the
 // outer panel rows are the pair that would sit directly around screen center.
 const MARQUEE_ROWS = [1, 2, 3, 4, 5, 6] as const;
-const CONTENT_IMAGES = Array.from(
-  { length: 10 },
-  (_, index) => `/content-images/content-${String(index + 1).padStart(2, "0")}.png`,
-);
+const CONTENT_VIDEOS = [
+  "/content-videos/1_New.webm",
+  "/content-videos/2_Cake.webm",
+  "/content-videos/3_Tet.webm",
+  "/content-videos/4_Birthday.webm",
+  "/content-videos/5_Online.webm",
+  "/content-videos/6_Horse.webm",
+  "/content-videos/7_Gang.webm",
+  "/content-videos/8_Grad.webm",
+  "/content-videos/9_Subway.webm",
+  "/content-videos/10_Shoot.webm",
+] as const;
 
 const BackgroundMarqueeWord = memo(function BackgroundMarqueeWord({
   tag,
@@ -204,50 +214,25 @@ function BackgroundMarquee({ currentSection }: { currentSection: number }) {
   );
 }
 
-function SectionContent({
-  contentNumber,
-  subContentIndex,
-}: {
-  contentNumber: number;
-  subContentIndex: number;
-}) {
+function SectionContent({ contentNumber }: { contentNumber: number }) {
   const content = FLASHBACK_CONTENT[contentNumber - 1];
-
-  if (subContentIndex > 0) {
-    return (
-      <section
-        className="rectangle-test__section-content"
-        aria-label={`${content.generation}: ${content.title}, ảnh phụ ${subContentIndex}`}
-        data-layout="subcontent"
-      >
-        <div
-          className="rectangle-test__subcontent-placeholder"
-          role="img"
-          aria-label={`Ảnh phụ ${subContentIndex} của ${content.generation}: ${content.title}`}
-        >
-          <span>{`Image ${contentNumber}.${subContentIndex}`}</span>
-        </div>
-      </section>
-    );
-  }
-
-  const isBookendContent = contentNumber === 1 || contentNumber === 10;
 
   return (
     <section
       className="rectangle-test__section-content"
       aria-labelledby={`flashback-content-title-${contentNumber}`}
-      data-layout={isBookendContent ? "bookend" : "split"}
-      data-imperfection={contentNumber === 1 ? "first" : contentNumber === 10 ? "last" : undefined}
-      data-image-side={isBookendContent ? undefined : contentNumber % 2 === 0 ? "left" : "right"}
+      data-layout="bookend"
     >
-      <img
-        alt={`Minh họa cho ${content.generation}: ${content.title}`}
-        className="rectangle-test__section-image"
-        decoding="async"
-        draggable={false}
-        loading="lazy"
-        src={CONTENT_IMAGES[contentNumber - 1]}
+      <video
+        aria-label={`Minh họa cho ${content.generation}: ${content.title}`}
+        autoPlay
+        className="rectangle-test__section-video"
+        disablePictureInPicture
+        loop
+        muted
+        playsInline
+        preload="metadata"
+        src={CONTENT_VIDEOS[contentNumber - 1]}
       />
       <div className="rectangle-test__section-copy">
         <h2 id={`flashback-content-title-${contentNumber}`}>
@@ -276,6 +261,9 @@ export default function RectangleScrollTest({
   const [sharedFrameSize, setSharedFrameSize] = useState<FilmFrameSize | null>(null);
   const [currentSection, setCurrentSection] = useState(1);
   const currentContentPosition = getContentSequencePosition(currentSection);
+  const currentPrimaryColor = FLASHBACK_PRIMARY_COLORS[
+    (currentContentPosition?.contentNumber ?? 1) - 1
+  ];
 
   useEffect(() => {
     const page = pageRef.current;
@@ -291,9 +279,11 @@ export default function RectangleScrollTest({
     let renderedSection = 1;
     let viewportWidth = 0;
     let viewportHeight = 0;
-    let planeWidthRatio = DESKTOP_PLANE_WIDTH_RATIO;
     let framePitch = 0;
     let maximumPosition = 0;
+    let planeWidthRatio = DESKTOP_PLANE_WIDTH_RATIO;
+    let perspectiveHeightRatio = B_PERSPECTIVE_VH;
+    let bStartWidthRatio = B_START_WIDTH_RATIO;
 
     const updateViewportMetrics = () => {
       viewportWidth = document.documentElement.clientWidth;
@@ -301,6 +291,8 @@ export default function RectangleScrollTest({
       planeWidthRatio = viewportWidth <= COMPACT_BREAKPOINT
         ? COMPACT_PLANE_WIDTH_RATIO
         : DESKTOP_PLANE_WIDTH_RATIO;
+      perspectiveHeightRatio = viewportWidth <= COMPACT_BREAKPOINT ? 0.64 : B_PERSPECTIVE_VH;
+      bStartWidthRatio = viewportWidth <= COMPACT_BREAKPOINT ? 0.88 : B_START_WIDTH_RATIO;
       framePitch = viewportHeight * 0.2;
       maximumPosition = viewportHeight * LANDING_SECTION_COUNT;
       page.style.setProperty(
@@ -365,17 +357,20 @@ export default function RectangleScrollTest({
         0,
         Math.min(1, sectionPosition - (LAST_CONTENT_SECTION - 1)),
       );
+      const bottomFadeProgress = Math.min(1, lastSectionProgress / 0.5);
+      const easedBottomFadeProgress = bottomFadeProgress * bottomFadeProgress
+        * (3 - 2 * bottomFadeProgress);
       const easedLastSectionProgress = lastSectionProgress * lastSectionProgress
         * (3 - 2 * lastSectionProgress);
       const easedProgress = progress * progress * (3 - 2 * progress);
       const aScale = 1 - (1 - A_MIN_SCALE) * easedProgress;
       const aWidth = viewportWidth * planeWidthRatio * aScale;
-      const bBottomWidthRatio = B_START_WIDTH_RATIO
-        + (1 - B_START_WIDTH_RATIO) * easedLastSectionProgress;
+      const bBottomWidthRatio = bStartWidthRatio
+        + (1 - bStartWidthRatio) * easedLastSectionProgress;
       const bBottomWidth = viewportWidth * bBottomWidthRatio;
       const bTopToBottomRatio = aWidth / bBottomWidth;
       const bAngleRadians = Math.atan(
-        B_PERSPECTIVE_VH * (1 - bTopToBottomRatio) / B_HEIGHT_VH,
+        perspectiveHeightRatio * (1 - bTopToBottomRatio) / B_HEIGHT_VH,
       );
       const bAngle = bAngleRadians * 180 / Math.PI;
       const bDepthScale = 1 / (bTopToBottomRatio * Math.cos(bAngleRadians));
@@ -425,10 +420,17 @@ export default function RectangleScrollTest({
       page.style.setProperty("--rectangle-b-depth-scale", bDepthScale.toFixed(4));
       page.style.setProperty("--rectangle-b-image-height", `${(bDepthScale * 100).toFixed(3)}%`);
       page.style.setProperty("--rectangle-b-image-counter-scale", (1 / bDepthScale).toFixed(6));
+      page.style.setProperty(
+        "--rectangle-bottom-fade-opacity",
+        (1 - easedBottomFadeProgress).toFixed(4),
+      );
 
       if (nextSection !== renderedSection) {
         renderedSection = nextSection;
         setCurrentSection(nextSection);
+        window.dispatchEvent(new CustomEvent("flashbacksectionchange", {
+          detail: { section: nextSection },
+        }));
       }
     };
 
@@ -675,24 +677,28 @@ export default function RectangleScrollTest({
       aria-label="Film frame perspective scroll test"
       data-section-count={LANDING_SECTION_COUNT}
       data-current-section={currentSection}
+      style={{
+        "--rectangle-section-primary-color": currentPrimaryColor,
+      } as CSSProperties}
     >
       {embedded ? <BackgroundMarquee currentSection={currentSection} /> : null}
       {embedded ? (
-        <>
-          <h1 className="rectangle-test__hero-title">
-            <span>FLASH - 10</span>
-            <span>năm CÒN - NÉT</span>
-          </h1>
-          <p className="rectangle-test__hero-caption">
-            Mỗi thế hệ mang 1 NÉT riêng biệt, NỐI lại thành một FLASH.
-          </p>
-        </>
+        <div className="rectangle-test__hero-copy">
+          {/* The supplied vector contains the full hero title, subtitle, and body copy. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            alt="FLASH — 10 NĂM CÒN - NÉT. Mỗi thế hệ mang 1 NÉT riêng biệt, NỐI lại thành một FLASH."
+            className="rectangle-test__hero-title-artwork"
+            decoding="async"
+            draggable={false}
+            src="/Title.svg"
+          />
+        </div>
       ) : null}
       {embedded && currentContentPosition ? (
         <SectionContent
           key={currentSection}
           contentNumber={currentContentPosition.contentNumber}
-          subContentIndex={currentContentPosition.subContentIndex}
         />
       ) : null}
       <div className="rectangle-test__sequence" aria-hidden="true">
@@ -713,6 +719,9 @@ export default function RectangleScrollTest({
         data-section={currentSection}
         aria-hidden="true"
       />
+      {embedded ? (
+        <div className="rectangle-test__bottom-fade" aria-hidden="true" />
+      ) : null}
     </div>
   );
 }

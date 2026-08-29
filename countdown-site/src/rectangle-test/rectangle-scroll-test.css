@@ -12,6 +12,7 @@
   --rectangle-b-image-counter-scale: 0.280057;
   --rectangle-frame-height: 20vh;
   --rectangle-half-viewport-offset: -50vh;
+  --rectangle-bottom-fade-opacity: 1;
   position: fixed;
   inset: 0;
   overflow: hidden;
@@ -155,6 +156,24 @@
   z-index: 2;
   inset: 0;
   pointer-events: none;
+}
+
+.rectangle-test__bottom-fade {
+  position: absolute;
+  z-index: 10;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: clamp(5rem, 18vh, 12rem);
+  background: linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 0%) 0%,
+    rgb(0 0 0 / 24%) 34%,
+    #000 100%
+  );
+  opacity: var(--rectangle-bottom-fade-opacity);
+  pointer-events: none;
+  will-change: opacity;
 }
 
 .rectangle-test__column {
@@ -320,5 +339,31 @@
 
   .rectangle-test__track {
     will-change: auto;
+  }
+}
+
+@media (max-width: 700px) {
+  .rectangle-test {
+    --rectangle-plane-width: 44vw;
+    --rectangle-b-width: 88vw;
+  }
+
+  .rectangle-test__background-marquee-group {
+    min-width: 180vw;
+    justify-content: flex-start;
+    gap: 1.4rem;
+    padding-inline: 0.75rem;
+  }
+
+  .rectangle-test__background-marquee-word {
+    font-size: clamp(1.1rem, 6vw, 1.65rem);
+  }
+
+  .rectangle-test__column--perspective {
+    perspective: 64vh;
+  }
+
+  .rectangle-test__film-image {
+    filter: grayscale(1) contrast(1.06);
   }
 }

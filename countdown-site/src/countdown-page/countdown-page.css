@@ -58,6 +58,10 @@
   pointer-events: none;
 }
 
+.countdown-page__mobile-meta {
+  display: none;
+}
+
 .countdown-experience[data-last-thirty="true"] .countdown-page {
   background: #000;
 }
@@ -452,31 +456,90 @@
   }
 }
 
-@media (orientation: portrait) {
-  .countdown-page {
-    --countdown-content-rotation: -90deg;
-    --countdown-orientation-angle: 90deg;
+@media (max-width: 700px) {
+  .countdown-experience {
+    --page-transition-duration: 1000ms;
   }
 
-}
-
-@media (max-width: 520px) {
   .countdown-page {
-    --countdown-number-size: clamp(1.9rem, 9vw, 3.2rem);
-    --countdown-label-size: clamp(0.38rem, 1.65vw, 0.53rem);
+    --countdown-content-rotation: 0deg;
+    --countdown-number-size: clamp(2rem, 10.4vw, 2.85rem);
+    --countdown-label-size: clamp(0.48rem, 2.05vw, 0.62rem);
+    --countdown-orientation-angle: 0deg;
+  }
+
+  .countdown-page::before {
+    inset:
+      max(env(safe-area-inset-top, 0px), 0.5rem)
+      max(env(safe-area-inset-right, 0px), 0.5rem)
+      max(env(safe-area-inset-bottom, 0px), 0.5rem)
+      max(env(safe-area-inset-left, 0px), 0.5rem);
+  }
+
+  .countdown-page__mobile-meta {
+    position: absolute;
+    z-index: 4;
+    top: max(calc(env(safe-area-inset-top, 0px) + 1rem), 1.25rem);
+    right: max(calc(env(safe-area-inset-right, 0px) + 1rem), 1.25rem);
+    left: max(calc(env(safe-area-inset-left, 0px) + 5.25rem), 5.5rem);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    color: #000;
+    font-size: clamp(0.58rem, 2.45vw, 0.72rem);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1.15;
+    pointer-events: none;
+  }
+
+  .countdown-page__mobile-meta span:last-child {
+    text-align: right;
   }
 
   .countdown {
-    padding: 0;
+    width: var(--countdown-layout-width, max-content);
+    max-width: none;
+  }
+
+  .countdown-segment {
+    padding-inline: clamp(0.08rem, 0.8vw, 0.22rem);
+  }
+
+  .film-roll {
+    width: calc(2ch + 52px);
   }
 
   .film-roll__label {
-    letter-spacing: 0.06em;
-    text-indent: 0.06em;
+    letter-spacing: 0.09em;
+    text-indent: 0.09em;
   }
 
   .countdown-colon {
-    width: 0.36em;
+    width: 0.3em;
     margin: 0;
+    font-size: calc(var(--countdown-number-size) * 0.72);
+  }
+
+  .save-date-button {
+    bottom: max(calc(env(safe-area-inset-bottom, 0px) + 0.5rem), 0.75rem);
+    min-width: min(12rem, calc(100vw - 3rem));
+    min-height: 3rem;
+    padding: 0.9rem 1.25rem;
+    border-radius: 999px;
+    box-shadow: 0 0.35rem 0 #000;
+    font-size: 0.72rem;
+    font-weight: 700;
+    transform: translateX(-50%);
+  }
+
+  .save-date-button:hover,
+  .save-date-button:active {
+    transform: translateX(-50%);
+  }
+
+  .countdown-experience[data-final-seconds="true"] .save-date-button {
+    transform: translate(-50%, calc(160% + env(safe-area-inset-bottom, 0px)));
   }
 }

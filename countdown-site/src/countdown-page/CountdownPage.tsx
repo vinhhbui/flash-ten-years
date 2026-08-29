@@ -7,7 +7,6 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
 } from "react";
 import type { CSSProperties } from "react";
 import DynamicHeader from "../components/DynamicHeader";
@@ -34,7 +33,6 @@ const TARGET_FILM_FPS = 24;
 const FILM_FRAME_INTERVAL_MS = 1_000 / TARGET_FILM_FPS;
 const COUNTDOWN_VIEWPORT_FILL = 0.9;
 const COUNTDOWN_COLUMN_COUNT = 4;
-const MOBILE_LANDING_QUERY = "(max-width: 900px), (pointer: coarse)";
 const MIN_VIRTUAL_FRAME_COUNT = 9;
 const VIRTUAL_FRAME_BUFFER = 3;
 const FILM_ROLL_ANGLES: Record<CountdownUnit["label"], number> = {
@@ -56,19 +54,6 @@ const UNIT_ARIA_LABELS_VI: Record<CountdownUnit["label"], string> = {
   SECONDS: "giây",
 };
 
-function subscribeToLandingSupport(onStoreChange: () => void) {
-  const mediaQuery = window.matchMedia(MOBILE_LANDING_QUERY);
-  mediaQuery.addEventListener("change", onStoreChange);
-  return () => mediaQuery.removeEventListener("change", onStoreChange);
-}
-
-function getLandingSupportSnapshot() {
-  return !window.matchMedia(MOBILE_LANDING_QUERY).matches;
-}
-
-function getLandingSupportServerSnapshot() {
-  return false;
-}
 const CALENDAR_FILENAME = "sinh-nhat-flash-2026.ics";
 const DEBUG_KEY_OFFSETS: Record<string, number> = {
   Digit1: DAY_IN_MS,
@@ -104,11 +89,10 @@ type ReelDeparture = {
 function getViewportLayout() {
   const viewportWidth = document.documentElement.clientWidth;
   const viewportHeight = document.documentElement.clientHeight;
-  const isPortrait = viewportHeight > viewportWidth;
 
   return {
-    crossExtent: isPortrait ? viewportWidth : viewportHeight,
-    layoutExtent: isPortrait ? viewportHeight : viewportWidth,
+    crossExtent: viewportHeight,
+    layoutExtent: viewportWidth,
   };
 }
 
@@ -775,11 +759,7 @@ export default function CountdownPage({ initialNow }: { initialNow: number }) {
   const [now, setNow] = useState(initialNow);
   const [debugOffset, setDebugOffset] = useState(0);
   const [landingActive, setLandingActive] = useState(false);
-  const landingSupported = useSyncExternalStore(
-    subscribeToLandingSupport,
-    getLandingSupportSnapshot,
-    getLandingSupportServerSnapshot,
-  );
+  const landingSupported = true;
   const activeLanding = landingSupported && landingActive;
   const totalSeconds = getRemainingSeconds(now, debugOffset);
 
@@ -884,6 +864,10 @@ export default function CountdownPage({ initialNow }: { initialNow: number }) {
           aria-hidden={activeLanding}
           inert={activeLanding ? true : undefined}
         >
+          <div className="countdown-page__mobile-meta" aria-hidden="true">
+            <span>FLASH / 10 NĂM</span>
+            <span>30.08.2026 · 10:00</span>
+          </div>
           <CountdownClock totalSeconds={totalSeconds} />
         </main>
         {landingSupported ? <LandingPage isActive={activeLanding} /> : null}

@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
-const SITE_TITLE = 'FLASHBACK';
-const SITE_DESCRIPTION = 'FLASHBACK - 10 năm của Flash là một chiếc máy ảnh được chuyền tay qua nhiều thế hệ. Mỗi thế hệ giữ một “cuộn film” riêng, lưu giữ khoảnh khắc, câu chuyện và dấu ấn của năm đó. Có frame rất đẹp, có frame chưa hoàn hảo - Ghép tất cả lại là hành trình 10 năm.';
+const SITE_TITLE = 'FLASH 10 NĂM CÒN-NÉT';
+const SITE_DESCRIPTION = 'FLASH 10 NĂM CÒN-NÉT - 10 năm của Flash là một chiếc máy ảnh được chuyền tay qua nhiều thế hệ. Mỗi thế hệ giữ một “cuộn film” riêng, lưu giữ khoảnh khắc, câu chuyện và dấu ấn của năm đó. Có frame rất đẹp, có frame chưa hoàn hảo - Ghép tất cả lại là hành trình 10 năm.';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://flashback.clbltv.org'),
+  metadataBase: new URL('https://flash.clbltv.org'),
   title: SITE_TITLE,
   description: SITE_DESCRIPTION,
   applicationName: SITE_TITLE,
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
         url: '/og.png',
         width: 1200,
         height: 630,
-        alt: 'FLASHBACK - Hành trình 10 năm của Flash',
+        alt: 'FLASH 10 NĂM CÒN-NÉT',
       },
     ],
   },
