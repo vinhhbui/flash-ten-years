@@ -1,15 +1,14 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import {
-  FLASHBACK_CONTENT_COUNT,
-  getContentStartSection,
-} from "../rectangle-test/contentSequence";
+import { FLASHBACK_CONTENT } from "../content/flashbackContent";
+import { getContentStartSection } from "../rectangle-test/contentSequence";
 import "./DynamicHeader.css";
 
-const HEADER_LINKS = Array.from({ length: FLASHBACK_CONTENT_COUNT }, (_, index) => ({
-  href: `#flashback-section-${getContentStartSection(index + 1)}`,
-  label: `Mục ${index + 1}`,
+const HEADER_LINKS = FLASHBACK_CONTENT.map((content) => ({
+  href: `#flashback-section-${getContentStartSection(content.generation)}`,
+  label: `Gen ${content.generation}: ${content.title}`,
+  displayLabel: String(content.generation),
 }));
 
 type DynamicHeaderProps = {
@@ -91,13 +90,13 @@ export default function DynamicHeader({ expanded }: DynamicHeaderProps) {
       ref={headerRef}
       className="dynamic-header"
       data-expanded={expanded}
-      aria-label="FLASHBACK"
+      aria-label="FLASH - 10 năm CÒN - NÉT"
     >
       <div className="dynamic-header__logo-slot">
         <a
           className="dynamic-header__logo-link"
           href={expanded ? "#flashback-section-1" : undefined}
-          aria-label="Hero FLASHBACK"
+          aria-label="Hero FLASH - 10 năm CÒN - NÉT"
           tabIndex={expanded ? 0 : -1}
         >
           {/* The source is a local vector logo; browser-native SVG rendering avoids rasterization. */}
@@ -107,7 +106,7 @@ export default function DynamicHeader({ expanded }: DynamicHeaderProps) {
       </div>
       <nav
         className="dynamic-header__navigation"
-        aria-label="Điều hướng FLASHBACK"
+        aria-label="Điều hướng 10 thế hệ FLASH"
         aria-hidden={!expanded}
       >
         {HEADER_LINKS.map((link) => (
@@ -118,7 +117,7 @@ export default function DynamicHeader({ expanded }: DynamicHeaderProps) {
             key={link.href}
             tabIndex={expanded ? 0 : -1}
           >
-            <span aria-hidden="true">{link.label.replace("Mục ", "")}</span>
+            <span aria-hidden="true">{link.displayLabel}</span>
           </a>
         ))}
       </nav>
